@@ -30,6 +30,9 @@ export class User {
   @Column()
   age: number;
 
+  @Column()
+  password: string;
+
   @Column({ type: 'text', nullable: true })
   avatar_url: string;
 

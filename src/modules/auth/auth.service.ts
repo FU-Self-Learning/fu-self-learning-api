@@ -79,7 +79,7 @@ export class AuthService {
         throw new BadRequestException(ErrorMessage.INVALID_TOKEN);
       }
       const payload: JwtPayload = {
-        username: user.name,
+        username: user.username,
         sub: user.id,
       };
       const newAccessToken = this.tokenService.generateAccessToken(payload);
