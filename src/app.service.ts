@@ -9,6 +9,6 @@ export class AppService {
     this.logger.warn('This is a warning');
     this.logger.error('This is an error');
     this.logger.debug('This is a debug message');
-    return 'Hello World!';
+    return 'Hello Kiet!';
   }
 }
