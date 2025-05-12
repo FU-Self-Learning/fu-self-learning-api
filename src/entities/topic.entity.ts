@@ -1,0 +1,47 @@
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
+import { Course } from './course.entity';
+import { Flashcard } from './flashcard.entity';
+import { AIContentRequest } from './ai-content-request.entity';
+import { StudySession } from './study-session.entity';
+import { QuizQuestion } from './quiz-question.entity';
+
+@Entity('topics')
+export class Topic {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @ManyToOne(() => Course, (course) => course.topics)
+  course: Course;
+
+  @OneToMany(() => Flashcard, (card) => card.topic)
+  flashcards: Flashcard[];
+
+  @OneToMany(() => StudySession, (session) => session.topic)
+  studySessions: StudySession[];
+
+  @OneToMany(() => AIContentRequest, (request) => request.topic)
+  aiContentRequests: AIContentRequest[];
+
+  @OneToMany(() => QuizQuestion, (quizQuestion) => quizQuestion.topic)
+  quizQuestions: QuizQuestion[];
+
+  @Column()
+  title: string;
+
+  @Column('text')
+  description: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+}
