@@ -27,7 +27,7 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   age: number;
 
   @Column()
@@ -36,7 +36,7 @@ export class User {
   @Column({ type: 'text', nullable: true })
   avatar_url: string;
 
-  @Column({ type: 'enum', enum: Role })
+  @Column({ type: 'enum', enum: Role, default: Role.Student })
   role: Role;
 
   @OneToMany(() => Course, (course) => course.instructor)

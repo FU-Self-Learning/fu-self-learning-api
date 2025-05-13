@@ -7,10 +7,10 @@ export class AIContentRequest {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, (user) => user.aiContentRequests)
   user: User;
 
-  @ManyToOne(() => Topic)
+  @ManyToOne(() => Topic, (topic) => topic.aiContentRequests)
   topic: Topic;
   
   @Column({ type: 'enum', enum: ['flashcard', 'quiz'] })
