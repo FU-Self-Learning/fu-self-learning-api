@@ -16,7 +16,6 @@ import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { TokenService, JwtAuthGuard } from 'src/config/jwt';
 
-
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -34,19 +33,6 @@ export class AuthController {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
     return { accessToken, refreshToken, userInfo };
   }
 
@@ -56,7 +42,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     await this.authService.register(registerDto);
-    return "Registration successful";
+    return 'Registration successful';
   }
 
   @Post('refresh')
@@ -71,21 +57,6 @@ export class AuthController {
 
     const { accessToken } = await this.authService.refreshToken(refreshToken);
 
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    });
-
-    return { message: 'Token refreshed successfully' };
+    return { accessToken };
   }
-
-  @Post('logout')
-  async logout(@Res({ passthrough: true }) res: Response) {
-    res.clearCookie('access_token');
-    res.clearCookie('refresh_token');
-    return { message: 'Logged out successfully' };
-  }
-
 }

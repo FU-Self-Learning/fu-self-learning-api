@@ -71,7 +71,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
       response.status(statusCode).json({
         statusCode,
         errorMessage,
-        data: data[0] ? data : description,
+        data: data[0] ? data : [description],
       });
     };
     const handlers: {
@@ -87,6 +87,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
         ].some(Boolean),
         type: 'AUTH',
         errorMessage,
+        data: ['You do not have permission to perform this action'],
       },
       {
         condition: Array.isArray(errorMessage),
