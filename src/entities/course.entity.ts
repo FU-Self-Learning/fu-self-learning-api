@@ -28,8 +28,11 @@ export class Course {
   @OneToMany(() => Topic, (topic) => topic.course)
   topics: Topic[];
 
+  @Column({ nullable: true })
+  document_url: string;
+
   @OneToMany(() => Comment, (comment) => comment.course)
-  comments: Comment[]
+  comments: Comment[];
 
   @CreateDateColumn()
   created_at: Date;

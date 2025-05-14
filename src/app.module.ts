@@ -11,6 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
+import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
+import { CourseModule } from './modules/course/course.module';
 
 @Module({
   imports: [
@@ -32,7 +34,9 @@ import { ChatbotModule } from './modules/chatbot/chatbot.module';
     }),
     UsersModule,
     AuthModule,
-    ChatbotModule
+    ChatbotModule,
+    AiAgentModule,
+    CourseModule,
   ],
   controllers: [AppController],
   providers: [
