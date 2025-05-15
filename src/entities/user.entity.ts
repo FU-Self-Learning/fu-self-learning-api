@@ -9,12 +9,13 @@ import {
 } from 'typeorm';
 import { Course } from './course.entity';
 import { Post } from './post.entity';
-import { Comment } from './comment.entity';
+import { CommentCourse } from './comment-course.entity';
 import { AIContentRequest } from './ai-content-request.entity';
 import { SocialInteraction } from './social-interaction.entity';
 import { Follow } from './follow.entity';
 import { StudySession } from './study-session.entity';
 import { QuizResult } from './quiz-result.entity';
+import { CommentPost } from './comment-post.entity';
 
 @Entity('users')
 export class User {
@@ -51,8 +52,11 @@ export class User {
   )
   aiContentRequests: AIContentRequest[];
 
-  @OneToMany(() => Comment, (comment) => comment.user)
-  comments: Comment[];
+  @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.user)
+  commentsCourse: CommentCourse[];
+
+  @OneToMany(() => CommentPost, (CommentPost) => CommentPost.user)
+  commentsPost: CommentPost[];
 
   @OneToMany(() => Follow, (follow) => follow.following_user)
   following: Follow[];

@@ -9,12 +9,12 @@ import {
 import { Course } from './course.entity';
 import { User } from './user.entity';
 
-@Entity('comments')
-export class Comment {
+@Entity('comments_course')
+export class CommentCourse {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.comments)
+  @ManyToOne(() => User, (user) => user.commentsCourse)
   user: User;
 
   @ManyToOne(() => Course, (course) => course.id)

@@ -13,7 +13,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ChatbotModule } from './modules/chatbot/chatbot.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { CourseModule } from './modules/course/course.module';
-
+import { PostModule } from './modules/post/post.module';
+import { FollowModule } from './modules/follow/follow.module';
+import { CommentPostModule } from './modules/comment-post/comment-post.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -37,6 +39,9 @@ import { CourseModule } from './modules/course/course.module';
     ChatbotModule,
     AiAgentModule,
     CourseModule,
+    PostModule,
+    FollowModule,
+    CommentPostModule,
   ],
   controllers: [AppController],
   providers: [
