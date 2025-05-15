@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 import { Topic } from './topic.entity';
-import { Comment } from './comment.entity';
+import { CommentCourse } from './comment-course.entity';
 
 @Entity('courses')
 export class Course {
@@ -31,7 +31,7 @@ export class Course {
   @Column({ nullable: true })
   document_url: string;
 
-  @OneToMany(() => Comment, (comment) => comment.course)
+  @OneToMany(() => CommentCourse, (CommentCourse) => CommentCourse.course)
   comments: Comment[];
 
   @CreateDateColumn()
