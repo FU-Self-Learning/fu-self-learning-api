@@ -15,9 +15,9 @@ export class CourseService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(createCourseDto: CreateCourseDto, currentUser: User): Promise<Course> {
+  async create(createCourseDto: CreateCourseDto, uid: string): Promise<Course> {
     const instructor = await this.userRepository.findOne({
-      where: { id: createCourseDto.instructorId },
+      where: { id: Number(uid) },
     });
 
     if (!instructor) {
@@ -38,7 +38,7 @@ export class CourseService {
     });
   }
 
-  async findOne(id: number, currentUser: User): Promise<Course> {
+  async findOne(id: number, userId: string): Promise<Course> {
     const course = await this.courseRepository.findOne({
       where: { id },
       relations: ['instructor', 'topics'],
@@ -51,8 +51,8 @@ export class CourseService {
     return course;
   }
 
-  async update(id: number, updateCourseDto: UpdateCourseDto, currentUser: User): Promise<Course> {
-    const course = await this.findOne(id, currentUser);
+  async update(id: number, updateCourseDto: UpdateCourseDto, userId: string): Promise<Course> {
+    const course = await this.findOne(id, userId);
 
     if (updateCourseDto.instructorId) {
       const instructor = await this.userRepository.findOne({
@@ -70,8 +70,8 @@ export class CourseService {
     return this.courseRepository.save(course);
   }
 
-  async remove(id: number, currentUser: User): Promise<void> {
-    const course = await this.findOne(id, currentUser);
+  async remove(id: number, userId: string): Promise<void> {
+    const course = await this.findOne(id, userId);
     await this.courseRepository.remove(course);
   }
 } 

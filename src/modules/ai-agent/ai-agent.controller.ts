@@ -5,6 +5,7 @@ import {
   UploadedFile,
   BadRequestException,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AiAgentService } from './ai-agent.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -26,10 +27,11 @@ export class AiAgentController {
   @UseInterceptors(FileInterceptor('file'))
   async generateTopics(
     @UploadedFile() file: Express.Multer.File,
+    @Request() req,
   ): Promise<{ topics: Topic[]; summary: Partial<Course> }> {
     try {
       const text = await this.pdfService.extractTextFromBuffer(file.buffer);
-      return this.aiAgentService.generateTopicsAndSummary(text);
+      return this.aiAgentService.generateTopicsAndSummary(text, req.user.id);
     } catch (error) {
       throw new BadRequestException({
         message: ErrorMessage.VALIDATE_FAILED,

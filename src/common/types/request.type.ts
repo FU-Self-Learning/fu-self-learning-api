@@ -1,10 +1,6 @@
 import { Request } from 'express';
-export interface UserInfo {
-  uid: string;
-  role: string;
-  name: string;
-  phone: string;
-}
+import { JwtPayload } from 'src/config/jwt';
+
 export interface CustomRequest extends Request {
-  user: UserInfo;
+  userInfo: JwtPayload;
 }

@@ -17,6 +17,11 @@ export class TopicService {
     return this.topicRepository.save(topic);
   }
 
+  async createMany(createTopicDto: CreateTopicDto[]): Promise<Topic[]> {
+    const topics = this.topicRepository.create(createTopicDto);
+    return this.topicRepository.save(topics);
+  }
+
   async findAll(): Promise<Topic[]> {
     return this.topicRepository.find({
       relations: ['course', 'flashcards', 'studySessions', 'quizQuestions'],
@@ -30,7 +35,10 @@ export class TopicService {
     });
   }
 
-  async update(id: number, updateTopicDto: UpdateTopicDto): Promise<Topic | null> {
+  async update(
+    id: number,
+    updateTopicDto: UpdateTopicDto,
+  ): Promise<Topic | null> {
     await this.topicRepository.update(id, updateTopicDto);
     return this.findOne(id);
   }
@@ -38,4 +46,4 @@ export class TopicService {
   async remove(id: number): Promise<void> {
     await this.topicRepository.delete(id);
   }
-} 
+}

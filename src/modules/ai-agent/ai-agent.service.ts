@@ -4,11 +4,15 @@ import { RunnableSequence } from '@langchain/core/runnables';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { Topic } from 'src/entities/topic.entity';
 import { Course } from 'src/entities/course.entity';
+import { CourseService } from '../course/course.service';
+import { TopicService } from '../topic/topic.service';
 
 @Injectable()
 export class AiAgentService {
   private openAIModel: ChatOpenAI;
   private chain: RunnableSequence;
+  private courseService: CourseService;
+  private topicService: TopicService;
 
   constructor() {
     this.openAIModel = new ChatOpenAI({
@@ -32,6 +36,7 @@ export class AiAgentService {
 
   async generateTopicsAndSummary(
     text: string,
+    uid: string,
   ): Promise<{ topics: Topic[]; summary: Partial<Course> }> {
     try {
       const response = await this.chain.invoke({ text });
@@ -57,11 +62,13 @@ export class AiAgentService {
           Logger.error('Error parsing summary:', error);
         }
       }
-      console.log(responseJson);
-      
+      const course = await this.courseService.create(responseJson.summary, uid);
+      const topics = await this.topicService.createMany(
+        responseJson.learning_topics,
+      );
       return {
-        topics: responseJson.learning_topics,
-        summary: responseJson.summary,
+        topics: topics,
+        summary: course,
       };
     } catch (error) {
       Logger.error('Error in generateTopics:', error);
