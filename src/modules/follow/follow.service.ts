@@ -48,4 +48,19 @@ export class FollowService {
             relations: ["followed_user"],
         });
     }
+
+    async unfollow(followingId: number, followedId: number): Promise<void> {
+        const follow = await this.followRepository.findOne({
+            where: {
+                following_user: { id: followingId },
+                followed_user: { id: followedId },
+            },
+        });
+
+        if (!follow) {
+            throw new Error("Follow relationship not found");
+        }
+
+        await this.followRepository.remove(follow);
+    }
 }

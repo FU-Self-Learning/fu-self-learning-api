@@ -1,6 +1,7 @@
 import { Controller, Post, Body, UseGuards, Request, Get } from '@nestjs/common';
 import { JwtAuthGuard } from '../../config/jwt';
 import { FollowService } from './follow.service';
+import { CreateFollowDto } from './dto/create-follow.dto';
 
 @Controller('follow')
 export class FollowController {
@@ -23,4 +24,10 @@ export class FollowController {
     getFollowing(@Request() req) {
         return this.followService.getFollowing(req.user.id);
     }  
+
+    @UseGuards(JwtAuthGuard)
+    @Post('unfollow')
+    unfollow(@Body() unfollowDto: CreateFollowDto, @Request() req) {
+        return this.followService.unfollow(unfollowDto.followingId, req.user.id);
+    }
 }
