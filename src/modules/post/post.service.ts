@@ -1,76 +1,110 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { UsersService } from '../users/users.service';
+import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(Post)
-    private postRepository: Repository<Post>,
-    private usersService: UsersService, 
-  ) {}
+    private readonly postRepo: Repository<Post>,
+    private readonly userService: UsersService,
+    private readonly cloudinary: CloudinaryService,
+  ) { }
 
-  async create(createPostDto: CreatePostDto, userId: number): Promise<Post> {
-    const user = await this.usersService.getProfile(userId);
-    if (!user) {
-      throw new Error('User not found');
+  private async uploadImage(file?: Express.Multer.File): Promise<string> {
+    if (!file?.path) return '';
+    try {
+      const result = await this.cloudinary.uploadImage(file.path);
+      return result.secure_url;
+    } catch (err) {
+      throw new BadRequestException('Failed to upload image: ' + err.message);
     }
+  }
 
-    const post = this.postRepository.create({
-      ...createPostDto,
+  async create(
+    dto: CreatePostDto,
+    userId: number,
+    file?: Express.Multer.File,
+  ): Promise<Post> {
+    const user = await this.userService.getProfile(userId);
+    if (!user) throw new BadRequestException('User not found');
+
+    const image = await this.uploadImage(file);
+
+    const post = this.postRepo.create({
+      ...dto,
+      image,
       user,
     });
 
-    return this.postRepository.save(post);
-  }
-
-  async findAll(): Promise<Post[]> {
-    return this.postRepository.find();
-  }
-
-  async findOne(id: number): Promise<Post | null> {
-    return this.postRepository.findOne({
-      where: { id }
-    });
+    return this.postRepo.save(post);
   }
 
   async update(
     id: number,
-    updatePostDto: UpdatePostDto,
-    userId: number
+    dto: UpdatePostDto,
+    userId: number,
+    file?: Express.Multer.File,
   ): Promise<Post> {
-    const post = await this.postRepository.findOne({
+    const post = await this.postRepo.findOne({
       where: { id },
       relations: ['user'],
     });
-    if (!post) {
-      throw new Error('Post not found');
-    }
+
+    if (!post) throw new BadRequestException('Post not found');
     if (post.user.id !== userId) {
-      throw new Error('You are not authorized to update this post');
+      throw new BadRequestException('Unauthorized update attempt');
     }
-    const updatedPost = this.postRepository.create({
-      ...post,
-      ...updatePostDto,
+
+    const image = file ? await this.uploadImage(file) : post.image;
+    Object.assign(post, dto, { image });
+
+    return this.postRepo.save(post);
+  }
+
+  async findAll(): Promise<Post[]> {
+    return this.postRepo.find({
+      relations: ['user'],
+      order: { created_at: 'DESC' },
     });
-    return this.postRepository.save(updatedPost);
+  }
+
+  async findOne(id: number): Promise<Post> {
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+
+    if (!post) throw new BadRequestException('Post not found');
+    return post;
   }
 
   async remove(id: number, userId: number): Promise<void> {
-    const post = await this.postRepository.findOne({
+    const post = await this.postRepo.findOne({
       where: { id },
       relations: ['user'],
     });
-    if (!post) {
-      throw new Error('Post not found');
-    }
+
+    if (!post) throw new BadRequestException('Post not found');
     if (post.user.id !== userId) {
-      throw new Error('You are not authorized to delete this post');
+      throw new BadRequestException('Unauthorized delete attempt');
     }
-    await this.postRepository.delete(id);
+
+    if (post.image) {
+      const publicId = this.extractPublicIdFromUrl(post.image);
+      await this.cloudinary.deleteImage(publicId);
+    }
+
+    await this.postRepo.remove(post);
+  }
+
+  private extractPublicIdFromUrl(url: string): string {
+    const filename = url.split('/').pop();
+    return filename?.split('.')[0] ?? '';
   }
 }
