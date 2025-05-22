@@ -80,6 +80,9 @@ export class AuthService {
       }
       const payload: JwtPayload = {
         username: user.username,
+        uid: user.id.toString(),
+        role: user.role,
+        email: user.email,
         sub: user.id,
       };
       const newAccessToken = this.tokenService.generateAccessToken(payload);

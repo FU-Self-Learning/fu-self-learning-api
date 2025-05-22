@@ -39,7 +39,7 @@ export class CourseController {
   @Get(':id')
   @Roles(Role.Student, Role.Instructor)
   findOne(@Param('id') id: string, @Request() req: CustomRequest) {
-    return this.courseService.findOne(+id, req.userInfo.id.toString());
+    return this.courseService.findOne(+id, req.userInfo.uid.toString());
   }
 
   @Patch(':id')

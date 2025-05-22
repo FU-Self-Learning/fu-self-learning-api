@@ -14,7 +14,7 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
-import { TokenService, JwtAuthGuard } from 'src/config/jwt';
+import { TokenService, JwtAuthGuard, JwtPayload } from 'src/config/jwt';
 
 @Controller('auth')
 export class AuthController {
@@ -29,7 +29,13 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const userInfo = await this.authService.login(loginDto);
-    const payload = { username: userInfo.name, sub: userInfo.id };
+    const payload: JwtPayload = {
+      username: userInfo.name,
+      sub: userInfo.id,
+      email: userInfo.email,
+      uid: userInfo.id.toString(),
+      role: userInfo.role,
+    };
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 

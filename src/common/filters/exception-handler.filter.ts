@@ -31,7 +31,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
   
 
     /* ------------- Get request infomation  -------------*/
-    const uid = request.user?.uid;
+    const uid = request.userInfo?.uid;
     const forwardedIP = request.headers['x-forwarded-for']?.toString().split(',')[0];
     const userIP = forwardedIP || request.socket.remoteAddress;
     const metadata = {
