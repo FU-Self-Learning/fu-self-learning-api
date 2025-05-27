@@ -8,16 +8,19 @@ export class UserInfoDto {
   email: string;
 
   @Expose()
-  name: string;
+  username: string;
 
   @Expose()
-  phoneNumber: string;
+  dob: Date;
 
   @Expose()
-  address: string;
+  avatar_url: string;
 
   @Expose()
   role: string;
+
+  @Expose()
+  phoneNumber: string;
 
   @Expose()
   createdAt: Date;

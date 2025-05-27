@@ -8,6 +8,7 @@ import { EmailService } from 'src/modules/email/email.service';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ConfigModule } from '@nestjs/config';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { ConfigModule } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
-  providers: [UsersService, TokenService, EmailService],
+  providers: [UsersService, TokenService, EmailService, CloudinaryService],
   controllers: [UsersController],
   exports: [UsersService],
 })

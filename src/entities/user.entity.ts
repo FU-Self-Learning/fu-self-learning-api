@@ -29,7 +29,10 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
-  age: number;
+  phoneNumber: string;
+
+  @Column({ nullable: true })
+  dob: Date;
 
   @Column()
   password: string;

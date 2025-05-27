@@ -31,7 +31,7 @@ export class PostService {
     userId: number,
     file?: Express.Multer.File,
   ): Promise<Post> {
-    const user = await this.userService.getProfile(userId);
+    const user = await this.userService.findUserById(userId);
     if (!user) throw new BadRequestException('User not found');
 
     const image = await this.uploadImage(file);

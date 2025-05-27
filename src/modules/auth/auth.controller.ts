@@ -30,7 +30,7 @@ export class AuthController {
   ) {
     const userInfo = await this.authService.login(loginDto);
     const payload: JwtPayload = {
-      username: userInfo.name,
+      username: userInfo.username,
       sub: userInfo.id,
       email: userInfo.email,
       uid: userInfo.id.toString(),

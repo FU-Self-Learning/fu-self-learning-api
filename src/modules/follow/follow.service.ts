@@ -13,15 +13,15 @@ export class FollowService {
     ) {}
 
     async create(followingId: number, followedId: number): Promise<Follow> {
-        const followingUser = await this.usersService.getProfile(followingId);
-        const followedUser = await this.usersService.getProfile(followedId);
+        const followingUser = await this.usersService.findUserById(followingId);
+        const followedUser = await this.usersService.findUserById(followedId);
 
         if (!followingUser || !followedUser) {
             throw new Error("User not found");
         }
         const follow = this.followRepository.create({
-            following_user: followingUser,
             followed_user: followedUser,
+            following_user: followingUser,
         });
 
         return this.followRepository.save(follow);

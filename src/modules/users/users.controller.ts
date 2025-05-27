@@ -7,18 +7,37 @@ import {
   Body,
   Post,
   Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { tmpdir } from 'os';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/config/jwt';
 import { UpdateProfileDto } from './dto/update-profile-dto';
 import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserInfoDto } from './dto/user-info.dto';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { FileValidator } from 'src/common/validators/file.validator';
+
+const storage = diskStorage({
+  destination: tmpdir(),
+  filename: (_, file, cb) => {
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
+  },
+});
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get('me')
   async getMe(@Request() req: any) {
@@ -29,7 +48,7 @@ export class UsersController {
   async updateMe(
     @Request() req: any,
     @Body() updateProfileDto: UpdateProfileDto,
-  ) {
+  ): Promise<UserInfoDto> {
     return this.usersService.updateProfile(req.user.id, updateProfileDto);
   }
 
@@ -56,5 +75,17 @@ export class UsersController {
     return await this.usersService.updateNewPassword(
       updateForgotPasswordUserDto,
     );
+  }
+
+  @Post('avatar')
+  @UseInterceptors(FileInterceptor('avatar', { storage }))
+  async uploadAvatar(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<UserInfoDto> {
+
+    FileValidator.validateImage(file);
+    this.cloudinaryService.validateFile(file);
+    return this.usersService.uploadAvatar(req.user.id, file);
   }
 }

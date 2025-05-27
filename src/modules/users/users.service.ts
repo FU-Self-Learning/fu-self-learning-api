@@ -11,6 +11,7 @@ import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserInfoDto } from './dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
+import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +20,7 @@ export class UsersService {
     private readonly usersRepository: Repository<User>,
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -45,12 +47,12 @@ export class UsersService {
   async updateProfile(
     id: number,
     updateProfileDto: UpdateProfileDto,
-  ): Promise<User> {
+  ): Promise<UserInfoDto> {
     const user = await this.findUserById(id);
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    return this.usersRepository.save({ ...user, ...updateProfileDto });
+    return plainToInstance(UserInfoDto, this.usersRepository.save({ ...user, ...updateProfileDto }));
   }
 
   // Xóa người dùng
@@ -62,8 +64,12 @@ export class UsersService {
     await this.usersRepository.remove(user);
   }
   // lấy profile info của người dùng
-  async getProfile(id: number): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { id } });
+  async getProfile(id: number): Promise<UserInfoDto> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return plainToInstance(UserInfoDto, user);
   }
 
   async changePassword(
@@ -141,5 +147,36 @@ export class UsersService {
 
     await this.usersRepository.update(user.id, { password: hashedNewPassword });
     return true;
+  }
+
+  async uploadAvatar(userId: number, file: Express.Multer.File): Promise<UserInfoDto> {
+    const user = await this.findUserById(userId);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    try {
+      // Delete old avatar if exists
+      if (user.avatar_url) {
+        const publicId = this.extractPublicIdFromUrl(user.avatar_url);
+        await this.cloudinaryService.deleteImage(publicId);
+      }
+
+      // Upload new avatar
+      const result = await this.cloudinaryService.uploadImage(file.path);
+      
+      // Update user with new avatar URL
+      user.avatar_url = result.secure_url;
+      const updatedUser = await this.usersRepository.save(user);
+      
+      return plainToInstance(UserInfoDto, updatedUser);
+    } catch (error) {
+      throw new BadRequestException('Failed to upload avatar: ' + error.message);
+    }
+  }
+
+  private extractPublicIdFromUrl(url: string): string {
+    const filename = url.split('/').pop();
+    return filename?.split('.')[0] ?? '';
   }
 }
