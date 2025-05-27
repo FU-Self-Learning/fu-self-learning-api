@@ -112,16 +112,7 @@ export class UsersService {
       if (!user) {
         throw new BadRequestException('User not found');
       }
-
-      const payload: JwtPayload = {
-        username: user.username,
-        uid: user.id.toString(),
-        email: user.email,
-        role: user.role,
-        sub: user.id,
-      };
-
-      const token: string = this.tokenService.generateAccessToken(payload);
+      const token = this.generateTokenUserInfo(user);
       await this.emailService.sendForgotPasswordEmail(
         user.username,
         user.email,
@@ -133,6 +124,31 @@ export class UsersService {
     }
   }
 
+  async sendActiveUser(email: string): Promise<boolean> {
+    const user = await this.usersRepository.findOne({ where: { email } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    const token = this.generateTokenUserInfo(user);
+    await this.emailService.sendActivationEmail(
+      user.username,
+      user.email,
+      token,
+    );
+    return true;
+  }
+
+  private generateTokenUserInfo(user: User): string {
+    const payload: JwtPayload = {
+      username: user.username,
+      uid: user.id.toString(),
+      email: user.email,
+      role: user.role,
+      sub: user.id,
+    };
+
+    return this.tokenService.generateAccessToken(payload);
+  }
   
   async resetPassword(id: number): Promise<UserInfoDto> {
     const user = await this.usersRepository.findOne({ where: { id } });

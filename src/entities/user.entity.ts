@@ -37,6 +37,9 @@ export class User {
   @Column()
   password: string;
 
+  @Column({ default: false })
+  isActive: boolean;
+
   @Column({ type: 'text', nullable: true })
   avatar_url: string;
 

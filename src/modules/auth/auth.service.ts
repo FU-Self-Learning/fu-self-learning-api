@@ -45,6 +45,8 @@ export class AuthService {
       throw new BadRequestException(ErrorMessage.INTERNAL_ERROR);
     }
 
+    await this.userService.sendActiveUser(user.email);
+
     return plainToInstance(UserInfoDto, user);
   }
 
