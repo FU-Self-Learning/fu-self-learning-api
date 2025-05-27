@@ -220,4 +220,14 @@ export class UsersService {
     const filename = url.split('/').pop();
     return filename?.split('.')[0] ?? '';
   }
+
+  async updateUserStatus(id: number, isActive: boolean): Promise<UserInfoDto> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    user.isActive = isActive;
+    await this.usersRepository.save(user);
+    return plainToInstance(UserInfoDto, user);
+  }
 }

@@ -9,8 +9,6 @@ import { TokenService } from '../../config/jwt/token.service';
 import { UserInfoDto } from '../users/dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from 'src/config/jwt';
-import * as jwt from 'jsonwebtoken';
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -59,7 +57,12 @@ export class AuthService {
         description: 'Email or password are incorrect',
       });
     }
-
+    if (!user.isActive) {
+      throw new BadRequestException({
+        message: ErrorMessage.LOGIN_FAILED,
+        description: 'Account is not activated',
+      });
+    }
     const isPasswordValid = await bcryptjs.compare(
       infoLogin.password,
       user.password,
@@ -105,25 +108,22 @@ export class AuthService {
 
   async activateAccount(token: string): Promise<boolean> {
     try {
-      if (!process.env.JWT_ACTIVATE_SECRETKEY) {
-        throw new BadRequestException('JWT activation secret key is not defined');
-      }
-      const decoded = jwt.verify(token, process.env.JWT_ACTIVATE_SECRETKEY) as unknown as JwtPayload;
+      const decoded = this.tokenService.verifyToken(token);
 
       const user = await this.userService.findUserById(decoded.sub);
       if (!user) {
-        throw new BadRequestException('Người dùng không tồn tại');
+        throw new BadRequestException('User not found');
       }
 
       if (user.isActive) {
-        throw new BadRequestException('Tài khoản đã được kích hoạt trước đó');
+        throw new BadRequestException('Account has been activated before');
       }
 
-      // await this.userService.updateUserStatus(user.id, true);
+      await this.userService.updateUserStatus(user.id, true);
 
       return true;
     } catch (error) {
-      throw new BadRequestException('Mã kích hoạt không hợp lệ hoặc đã hết hạn');
+      throw new BadRequestException('Activation code is invalid or expired');
     }
   }
 }
