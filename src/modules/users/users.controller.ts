@@ -1,14 +1,46 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Request,
+  Put,
+  Body,
+  Post,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/config/jwt';
+import { UpdateProfileDto } from './dto/update-profile-dto';
+import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
 
+@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
-    @UseGuards(JwtAuthGuard)
-    @Get('me')
-    async getMe(@Request() req: any) {
-        return this.usersService.getProfile(req.user.id);
-    }
+  @Get('me')
+  async getMe(@Request() req: any) {
+    return this.usersService.getProfile(req.user.id);
+  }
+
+  @Put('me')
+  async updateMe(
+    @Request() req: any,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(req.user.id, updateProfileDto);
+  }
+
+  @Post('/forgot-password')
+  async forgotPassword(@Body('email') email: string): Promise<boolean> {
+    return await this.usersService.sendForgotPassword(email);
+  }
+
+  @Post('/update-forgot-password')
+  async updateForgotPassword(
+    @Body() updateForgotPasswordUserDto: UpdateForgotPasswordUserDto,
+  ): Promise<boolean> {
+    return await this.usersService.updateNewPassword(
+      updateForgotPasswordUserDto,
+    );
+  }
 }

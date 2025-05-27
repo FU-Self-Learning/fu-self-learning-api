@@ -1,14 +1,21 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { RegisterDto } from '../auth/dto/register.dto';
+import { UpdateProfileDto } from './dto/update-profile-dto';
+import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
+import { JwtPayload, TokenService } from 'src/config/jwt';
+import { EmailService } from 'src/modules/email/email.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly tokenService: TokenService,
+    private readonly emailService: EmailService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -32,28 +39,74 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
-  //   async update(id: number, username: string, password: string): Promise<User> {
-  //     const user = await this.findOne(id);
-  //     if (!user) {
-  //       throw new Error('User not found');
-  //     }
-
-  //     user.username = username;
-  //     user.password = password;
-
-  //     return this.usersRepository.save(user);
-  //   }
+  async updateProfile(
+    id: number,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<User> {
+    const user = await this.findUserById(id);
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    return this.usersRepository.save({ ...user, ...updateProfileDto });
+  }
 
   // Xóa người dùng
   async remove(id: number): Promise<void> {
     const user = await this.findUserById(id);
     if (!user) {
-      throw new Error('User not found');
+      throw new BadRequestException('User not found');
     }
     await this.usersRepository.remove(user);
   }
   // lấy profile info của người dùng
   async getProfile(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async sendForgotPassword(email: string): Promise<boolean> {
+    try {
+      const user = await this.usersRepository.findOne({ where: { email } });
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      const payload: JwtPayload = {
+        username: user.username,
+        uid: user.id.toString(),
+        email: user.email,
+        role: user.role,
+        sub: user.id,
+      };
+
+      const token: string = this.tokenService.generateAccessToken(payload);
+      await this.emailService.sendForgotPasswordEmail(
+        user.username,
+        user.email,
+        token,
+      );
+      return true;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async updateNewPassword(
+    updateForgotPasswordUserDto: UpdateForgotPasswordUserDto,
+  ): Promise<boolean> {
+    const { token, password } = updateForgotPasswordUserDto;
+    const verifiedToken = this.tokenService.verifyToken(token);
+    const user = await this.usersRepository.findOne({
+      where: { id: verifiedToken.sub },
+    });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+    const hashedNewPassword = await bcrypt.hash(
+      updateForgotPasswordUserDto.password,
+      10,
+    );
+
+    await this.usersRepository.update(user.id, { password: hashedNewPassword });
+    return true;
   }
 }
