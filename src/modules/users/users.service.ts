@@ -52,7 +52,10 @@ export class UsersService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    return plainToInstance(UserInfoDto, this.usersRepository.save({ ...user, ...updateProfileDto }));
+    return plainToInstance(
+      UserInfoDto,
+      this.usersRepository.save({ ...user, ...updateProfileDto }),
+    );
   }
 
   // Xóa người dùng
@@ -76,30 +79,29 @@ export class UsersService {
     id: number,
     changePasswordDto: ChangePasswordDto,
   ): Promise<UserInfoDto> {
-    const { oldPassword, newPassword } = changePasswordDto;
-    const user = await this.usersRepository.findOne({ where: { id } });
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
+    try {
+      const { currentPassword, newPassword } = changePasswordDto;
+      const user = await this.usersRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
 
-    const isOldPasswordCorrect = await bcrypt.compare(
-      oldPassword,
-      user.password,
-    );
-    if (!isOldPasswordCorrect) {
-      throw new BadRequestException('Old password is incorrect');
-    }
+      const isOldPasswordCorrect = await bcrypt.compare(
+        currentPassword,
+        user.password,
+      );
+      if (!isOldPasswordCorrect) {
+        throw new BadRequestException('Old password is incorrect');
+      }
 
-    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    await this.usersRepository.update(id, {
-      password: hashedNewPassword,
-    });
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      user.password = hashedNewPassword;
+      const updatedUser = await this.usersRepository.save(user);
 
-    const updatedUser = await this.usersRepository.findOne({ where: { id } });
-    if (!updatedUser) {
-      throw new BadRequestException('Failed to update user');
+      return plainToInstance(UserInfoDto, updatedUser);
+    } catch (error) {
+      throw new BadRequestException(error);
     }
-    return plainToInstance(UserInfoDto, updatedUser);
   }
 
   async sendForgotPassword(email: string): Promise<boolean> {
@@ -149,7 +151,10 @@ export class UsersService {
     return true;
   }
 
-  async uploadAvatar(userId: number, file: Express.Multer.File): Promise<UserInfoDto> {
+  async uploadAvatar(
+    userId: number,
+    file: Express.Multer.File,
+  ): Promise<UserInfoDto> {
     const user = await this.findUserById(userId);
     if (!user) {
       throw new BadRequestException('User not found');
@@ -164,14 +169,16 @@ export class UsersService {
 
       // Upload new avatar
       const result = await this.cloudinaryService.uploadImage(file.path);
-      
+
       // Update user with new avatar URL
       user.avatar_url = result.secure_url;
       const updatedUser = await this.usersRepository.save(user);
-      
+
       return plainToInstance(UserInfoDto, updatedUser);
     } catch (error) {
-      throw new BadRequestException('Failed to upload avatar: ' + error.message);
+      throw new BadRequestException(
+        'Failed to upload avatar: ' + error.message,
+      );
     }
   }
 

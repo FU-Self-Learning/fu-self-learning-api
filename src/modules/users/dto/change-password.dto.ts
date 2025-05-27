@@ -6,7 +6,7 @@ import { MatchPassword } from 'src/shared/validation/match-password';
 export class ChangePasswordDto {
   @Expose()
   @IsNotEmpty()
-  oldPassword: string;
+  currentPassword: string;
 
   @Expose()
   @IsNotEmpty()
@@ -18,5 +18,5 @@ export class ChangePasswordDto {
 
   @Expose()
   @Validate(MatchPassword, ['newPassword'])
-  confirmPassword: string;
+  confirmNewPassword: string;
 }
