@@ -9,6 +9,7 @@ import {
   Res,
   Req,
   UnauthorizedException,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -64,5 +65,10 @@ export class AuthController {
     const { accessToken } = await this.authService.refreshToken(refreshToken);
 
     return { accessToken };
+  }
+
+    @Get('activate')
+  async activateAccount(@Query('token') token: string) {
+    return await this.authService.activateAccount(token);
   }
 }

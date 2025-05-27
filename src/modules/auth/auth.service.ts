@@ -9,6 +9,7 @@ import { TokenService } from '../../config/jwt/token.service';
 import { UserInfoDto } from '../users/dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from 'src/config/jwt';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
@@ -100,5 +101,29 @@ export class AuthService {
       return user;
     }
     throw new BadRequestException(ErrorMessage.ACCESS_DENIED);
+  }
+
+  async activateAccount(token: string): Promise<boolean> {
+    try {
+      if (!process.env.JWT_ACTIVATE_SECRETKEY) {
+        throw new BadRequestException('JWT activation secret key is not defined');
+      }
+      const decoded = jwt.verify(token, process.env.JWT_ACTIVATE_SECRETKEY) as unknown as JwtPayload;
+
+      const user = await this.userService.findUserById(decoded.sub);
+      if (!user) {
+        throw new BadRequestException('Người dùng không tồn tại');
+      }
+
+      if (user.isActive) {
+        throw new BadRequestException('Tài khoản đã được kích hoạt trước đó');
+      }
+
+      // await this.userService.updateUserStatus(user.id, true);
+
+      return true;
+    } catch (error) {
+      throw new BadRequestException('Mã kích hoạt không hợp lệ hoặc đã hết hạn');
+    }
   }
 }
