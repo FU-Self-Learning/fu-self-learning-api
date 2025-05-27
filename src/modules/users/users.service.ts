@@ -8,6 +8,9 @@ import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
 import { JwtPayload, TokenService } from 'src/config/jwt';
 import { EmailService } from 'src/modules/email/email.service';
 import * as bcrypt from 'bcrypt';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UserInfoDto } from './dto/user-info.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class UsersService {
@@ -61,6 +64,36 @@ export class UsersService {
   // lấy profile info của người dùng
   async getProfile(id: number): Promise<User | null> {
     return this.usersRepository.findOne({ where: { id } });
+  }
+
+  async changePassword(
+    id: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<UserInfoDto> {
+    const { oldPassword, newPassword } = changePasswordDto;
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isOldPasswordCorrect = await bcrypt.compare(
+      oldPassword,
+      user.password,
+    );
+    if (!isOldPasswordCorrect) {
+      throw new BadRequestException('Old password is incorrect');
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersRepository.update(id, {
+      password: hashedNewPassword,
+    });
+
+    const updatedUser = await this.usersRepository.findOne({ where: { id } });
+    if (!updatedUser) {
+      throw new BadRequestException('Failed to update user');
+    }
+    return plainToInstance(UserInfoDto, updatedUser);
   }
 
   async sendForgotPassword(email: string): Promise<boolean> {
