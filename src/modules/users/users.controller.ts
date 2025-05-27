@@ -9,6 +9,9 @@ import {
   Req,
   UseInterceptors,
   UploadedFile,
+  Patch,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
@@ -67,6 +70,11 @@ export class UsersController {
     return await this.usersService.updateNewPassword(
       updateForgotPasswordUserDto,
     );
+  }
+
+  @Patch('reset-password/:id')
+  async resetPassword(@Param('id', ParseIntPipe) id: number): Promise<UserInfoDto> {
+    return await this.usersService.resetPassword(id);
   }
 
   @UseGuards(JwtAuthGuard)

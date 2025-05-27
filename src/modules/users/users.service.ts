@@ -12,6 +12,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserInfoDto } from './dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
@@ -21,6 +22,7 @@ export class UsersService {
     private readonly tokenService: TokenService,
     private readonly emailService: EmailService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -129,6 +131,22 @@ export class UsersService {
     } catch (error) {
       throw new BadRequestException(error);
     }
+  }
+
+  
+  async resetPassword(id: number): Promise<UserInfoDto> {
+    const user = await this.usersRepository.findOne({ where: { id } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const newPassword = await bcrypt.hash(this.configService.get<string>('RESET_PASSWORD'), 10);
+    
+    user.password = newPassword;
+    
+    await this.usersRepository.update(user.id, { password: newPassword });
+
+    return plainToInstance(UserInfoDto, user);
   }
 
   async updateNewPassword(
