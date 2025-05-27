@@ -12,8 +12,8 @@ export class EmailService {
       port: 587,
       secure: false,
       auth: {
-        user: this.configService.get<string>('MAIL_USER'),
-        pass: this.configService.get<string>('MAIL_PASS'),
+        user: this.configService.get<string>('MAIL_ACCOUNT'),
+        pass: this.configService.get<string>('MAIL_APP_PASSWORD'),
       },
     });
   }
@@ -22,7 +22,7 @@ export class EmailService {
     const activationLink = `${this.configService.get('FE_APP_URL')}/login?activateToken=${token}`;
 
     const template = this.generateEmailActivateTemplate(fullName, activationLink);
-    await this.sendEmail(email, 'Kích hoạt tài khoản DevPlus', template);
+    await this.sendEmail(email, 'Kích hoạt tài khoản', template);
   }
 
   async sendForgotPasswordEmail(fullName: string, email: string, token: string): Promise<void> {
@@ -75,9 +75,9 @@ export class EmailService {
               <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
               <br>
               <p>Chúng tôi luôn sẵn sàng lắng nghe yêu cầu hỗ trợ của bạn!
-              <p>Thân ái,<br>Đội ngũ DevPlus</p>
+              <p>Thân ái,<br>Đội ngũ FU-Learning</p>
             </div>
-            <div class="footer">© ${new Date().getFullYear()} DevPlus. All rights reserved.</div>
+            <div class="footer">© ${new Date().getFullYear()} FU-Learning. All rights reserved.</div>
           </div>
         </body>
         </html>
@@ -115,9 +115,9 @@ export class EmailService {
               <p>Nếu bạn không phải là người đăng ký, xin vui lòng bỏ qua email này.</p>
               <p>Chúng tôi rất mong chờ được đồng hành cùng bạn!<br>
               Nếu cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi.</p>
-              <p>Thân ái,<br>Đội ngũ DevPlus</p>
+              <p>Thân ái,<br>Đội ngũ FU-Learning</p>
             </div>
-            <div class="footer">© ${new Date().getFullYear()} DevPlus. All rights reserved.</div>
+            <div class="footer">© ${new Date().getFullYear()} FU-Learning. All rights reserved.</div>
           </div>
         </body>
         </html>
@@ -154,9 +154,9 @@ export class EmailService {
           <p>Để bảo mật, vui lòng kích hoạt tài khoản và đổi mật khẩu sau khi đăng nhập.</p>
           <a href="${loginLink}" class="btn">Kích hoạt tài khoản</a>
           <p>Nếu bạn không mong đợi email này, vui lòng bỏ qua hoặc liên hệ với chúng tôi.</p>
-          <p>Chúng tôi rất mong được hợp tác cùng bạn!<br>Trân trọng,<br>Đội ngũ DevPlus</p>
+          <p>Chúng tôi rất mong được hợp tác cùng bạn!<br>Trân trọng,<br>Đội ngũ FU-Learning</p>
         </div>
-        <div class="footer">© ${new Date().getFullYear()} DevPlus. All rights reserved.</div>
+        <div class="footer">© ${new Date().getFullYear()} FU-Learning. All rights reserved.</div>
       </div>
     </body>
     </html>

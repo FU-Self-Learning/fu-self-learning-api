@@ -11,9 +11,6 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { tmpdir } from 'os';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/config/jwt';
 import { UpdateProfileDto } from './dto/update-profile-dto';
@@ -22,16 +19,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { UserInfoDto } from './dto/user-info.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { FileValidator } from 'src/common/validators/file.validator';
+import { storage } from 'src/common/constants/storage';
 
-const storage = diskStorage({
-  destination: tmpdir(),
-  filename: (_, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}${extname(file.originalname)}`);
-  },
-});
-
-@UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
   constructor(
@@ -39,11 +28,13 @@ export class UsersController {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Request() req: any) {
     return this.usersService.getProfile(req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put('me')
   async updateMe(
     @Request() req: any,
@@ -52,6 +43,7 @@ export class UsersController {
     return this.usersService.updateProfile(req.user.id, updateProfileDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('change-password')
   async changePassword(
     @Req() req,
@@ -77,6 +69,7 @@ export class UsersController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('avatar')
   @UseInterceptors(FileInterceptor('avatar', { storage }))
   async uploadAvatar(
