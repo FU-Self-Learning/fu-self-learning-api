@@ -161,7 +161,7 @@ export class UsersService {
       throw new BadRequestException('User not found');
     }
     const hashedNewPassword = await bcrypt.hash(
-      updateForgotPasswordUserDto.password,
+      password,
       10,
     );
 
