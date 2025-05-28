@@ -9,6 +9,7 @@ import { TokenService } from '../../config/jwt/token.service';
 import { UserInfoDto } from '../users/dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { JwtPayload } from 'src/config/jwt';
+import { randomBytes } from 'crypto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -46,6 +47,22 @@ export class AuthService {
 
     await this.userService.sendActiveUser(user.email);
 
+    return plainToInstance(UserInfoDto, user);
+  }
+
+  async googleLogin(googleUser: any): Promise<UserInfoDto> {
+    const {email, name} = googleUser;
+    let user = await this.userService.findUserByEmail(email);
+    const salt = await bcryptjs.genSalt();
+    const randomPassword = randomBytes(16).toString('hex');
+    if (!user) {
+      user = await this.userService.createByGoogle({
+        email,
+        username: name,
+        password: await bcryptjs.hash(randomPassword, salt),
+        confirmPassword: await bcryptjs.hash(randomPassword, salt),
+      });
+    }
     return plainToInstance(UserInfoDto, user);
   }
 

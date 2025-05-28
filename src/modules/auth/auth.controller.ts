@@ -1,4 +1,3 @@
-// src/auth/auth.controller.ts
 import {
   Controller,
   Post,
@@ -16,13 +15,45 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { TokenService, JwtAuthGuard, JwtPayload } from 'src/config/jwt';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private tokenService: TokenService,
-  ) {}
+  ) { }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleLogin() {
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleLoginCallback(
+    @Req() req: any,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const user = await this.authService.googleLogin(req.user);
+    if (!user) {
+      throw new UnauthorizedException('Google login failed');
+    }
+
+    const payload: JwtPayload = {
+      username: user.username,
+      sub: user.id,
+      email: user.email,
+      uid: user.id.toString(),
+      role: user.role,
+    };
+    const accessToken = this.tokenService.generateAccessToken(payload);
+    const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
+
+    const redirectUrl = `http://localhost:3000/login-google?accessToken=${accessToken}&refreshToken=${refreshToken}&userInfo=${encodeURIComponent(JSON.stringify(user))}`;
+
+    return res.redirect(redirectUrl);
+  }
 
   @Post('login')
   async login(
@@ -67,7 +98,7 @@ export class AuthController {
     return { accessToken };
   }
 
-    @Get('activate')
+  @Get('activate')
   async activateAccount(@Query('token') token: string) {
     return await this.authService.activateAccount(token);
   }
