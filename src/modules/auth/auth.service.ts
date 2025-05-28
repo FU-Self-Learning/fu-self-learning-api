@@ -53,14 +53,12 @@ export class AuthService {
   async googleLogin(googleUser: any): Promise<UserInfoDto> {
     const {email, name} = googleUser;
     let user = await this.userService.findUserByEmail(email);
-    const salt = await bcryptjs.genSalt();
-    const randomPassword = randomBytes(16).toString('hex');
     if (!user) {
       user = await this.userService.createByGoogle({
         email,
         username: name,
-        password: await bcryptjs.hash(randomPassword, salt),
-        confirmPassword: await bcryptjs.hash(randomPassword, salt),
+        password: "",
+        confirmPassword: "",
       });
     }
     return plainToInstance(UserInfoDto, user);
