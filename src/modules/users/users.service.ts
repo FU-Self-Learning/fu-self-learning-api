@@ -46,6 +46,12 @@ export class UsersService {
     return await this.usersRepository.save(user);
   }
 
+  async createByGoogle(infoRegister: RegisterDto): Promise<User> {
+    const user = this.usersRepository.create(infoRegister);
+    user.isActive = true; // Automatically activate user created via Google
+    return await this.usersRepository.save(user);
+  }
+
   async updateProfile(
     id: number,
     updateProfileDto: UpdateProfileDto,
