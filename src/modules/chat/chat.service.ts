@@ -41,10 +41,17 @@ export class ChatService {
 
   async loadMessages(senderUserId: number, receiverUserId: number) {
     const messages = await this.chatRepo.find({
-      where: {
-        sender_user: { id: senderUserId },
-        receiver_user: { id: receiverUserId },
-      },
+      where: [
+        {
+          sender_user: { id: senderUserId },
+          receiver_user: { id: receiverUserId },
+        },
+        {
+          sender_user: { id: receiverUserId },
+          receiver_user: { id: senderUserId },
+        },
+      ],
+      relations: ['sender_user', 'receiver_user'],
       order: { created_at: 'ASC' },
     });
 
