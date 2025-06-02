@@ -33,4 +33,23 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('messageSent', message);
     client.broadcast.emit('newMessage', message);
   }
+
+  @SubscribeMessage('loadMessages')
+  async loadMessages(
+    @MessageBody() data: { senderUserId: number; receiverUserId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    console.log(
+      'Loading messages between:',
+      data.senderUserId,
+      data.receiverUserId,
+    );
+
+    const messages = await this.chatService.loadMessages(
+      data.senderUserId,
+      data.receiverUserId,
+    );
+
+    client.emit('messagesLoaded', messages);
+  }
 }

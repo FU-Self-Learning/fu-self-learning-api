@@ -38,4 +38,22 @@ export class ChatService {
       createdAt: saved.created_at,
     };
   }
+
+  async loadMessages(senderUserId: number, receiverUserId: number) {
+    const messages = await this.chatRepo.find({
+      where: {
+        sender_user: { id: senderUserId },
+        receiver_user: { id: receiverUserId },
+      },
+      order: { created_at: 'ASC' },
+    });
+
+    return messages.map((msg) => ({
+      id: msg.id,
+      senderId: msg.sender_user?.id ?? null,
+      receiverId: msg.receiver_user?.id ?? null,
+      message: msg.message,
+      createdAt: msg.created_at,
+    }));
+  }
 }
