@@ -82,6 +82,12 @@ export class User {
   )
   receiver: Follow[];
 
+  @OneToMany(() => SocialInteraction, (si) => si.sender_user)
+  sentMessages: SocialInteraction[];
+
+  @OneToMany(() => SocialInteraction, (si) => si.receiver_user)
+  receivedMessages: SocialInteraction[];
+
   @OneToMany(() => StudySession, (session) => session.user)
   studySessions: StudySession[];
 

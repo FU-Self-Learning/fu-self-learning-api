@@ -16,6 +16,7 @@ import { CourseModule } from './modules/course/course.module';
 import { PostModule } from './modules/post/post.module';
 import { FollowModule } from './modules/follow/follow.module';
 import { CommentPostModule } from './modules/comment-post/comment-post.module';
+import { ChatModule } from './modules/chat/chat.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,6 +43,7 @@ import { CommentPostModule } from './modules/comment-post/comment-post.module';
     PostModule,
     FollowModule,
     CommentPostModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
