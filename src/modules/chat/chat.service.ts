@@ -1,4 +1,5 @@
-import { Injectable } from '@nestjs/common';
+// src/chat/chat.service.ts
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocialInteraction } from 'src/entities/social-interaction.entity';
 import { Repository } from 'typeorm';
@@ -19,7 +20,7 @@ export class ChatService {
     const receiver = await this.userRepo.findOneBy({ id: dto.receiverUserId });
 
     if (!sender || !receiver) {
-      throw new Error('Sender or receiver not found');
+      throw new NotFoundException('Sender or receiver not found');
     }
 
     const newMsg = this.chatRepo.create({

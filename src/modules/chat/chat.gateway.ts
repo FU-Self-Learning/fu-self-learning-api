@@ -5,21 +5,44 @@ import {
   ConnectedSocket,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  WebSocketServer,
 } from '@nestjs/websockets';
-import { Socket } from 'socket.io';
+import { OnModuleInit } from '@nestjs/common';
+import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
+import { redisPub, redisSub } from '../redis/redis.provider';
 
 @WebSocketGateway({ cors: true, namespace: '/chat' })
-export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
+{
+  @WebSocketServer()
+  server: Server;
+
   constructor(private readonly chatService: ChatService) {}
 
   handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    const userId = client.handshake.query.userId;
+    if (userId) {
+      client.join(userId.toString());
+      console.log(`Client connected: ${client.id}, joined room ${userId}`);
+    }
   }
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
+  }
+
+  async onModuleInit() {
+    await redisSub.subscribe('chat');
+    redisSub.on('message', (channel, message) => {
+      const parsed = JSON.parse(message);
+      const targetRoom = parsed.receiverUserId?.toString();
+      if (targetRoom) {
+        this.server.to(targetRoom).emit('newMessage', parsed);
+      }
+    });
   }
 
   @SubscribeMessage('sendMessage')
@@ -27,11 +50,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: SendMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Received message:', data);
-
     const message = await this.chatService.saveMessage(data);
+
     client.emit('messageSent', message);
-    client.broadcast.emit('newMessage', message);
+    await redisPub.publish('chat', JSON.stringify(message));
   }
 
   @SubscribeMessage('loadMessages')
@@ -39,12 +61,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { senderUserId: number; receiverUserId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log(
-      'Loading messages between:',
-      data.senderUserId,
-      data.receiverUserId,
-    );
-
     const messages = await this.chatService.loadMessages(
       data.senderUserId,
       data.receiverUserId,
