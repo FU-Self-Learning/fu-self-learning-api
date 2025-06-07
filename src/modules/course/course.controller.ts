@@ -12,8 +12,8 @@ import {
   UploadedFile
 } from '@nestjs/common';
 import { CourseService } from './course.service';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { CreateCourseDto } from './dto/request/create-course.dto';
+import { UpdateCourseDto } from './dto/request/update-course.dto';
 import { RolesGuard } from '../../config/guards/roles.guard';
 import { Roles } from '../../config/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
@@ -51,8 +51,8 @@ export class CourseController {
 
   @Get()
   @Roles(Role.Student, Role.Instructor)
-  findAll(@Request() req) {
-    return this.courseService.findAll(req.user);
+  findAll(@Request() _req) {
+    return this.courseService.findAllWithAdminRole();
   }
 
   @Get(':id')

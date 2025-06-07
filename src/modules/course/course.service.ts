@@ -3,11 +3,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Course } from '../../entities/course.entity';
 import { User } from '../../entities/user.entity';
-import { CreateCourseDto } from './dto/create-course.dto';
-import { UpdateCourseDto } from './dto/update-course.dto';
+import { CreateCourseDto } from './dto/request/create-course.dto';
+import { UpdateCourseDto } from './dto/request/update-course.dto';
 import { Role } from 'src/common/enums/role.enum';
 import { Category } from 'src/entities/category.entity';
 import { ErrorMessage } from 'src/common/constants/error-message.constant';
+import { AdminViewCourseDto } from './dto/response/admin-view-courses.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class CourseService {
@@ -52,9 +54,19 @@ export class CourseService {
     return this.courseRepository.save(course);
   }
 
-  async findAll(currentUser: User): Promise<Course[]> {
+  async findAll(): Promise<Course[]> {
     return this.courseRepository.find({
       relations: ['instructor', 'topics'],
+    });
+  }
+
+  async findAllWithAdminRole(): Promise<AdminViewCourseDto[]> {
+    const courses = await this.courseRepository.find({
+      relations: ['instructor', 'categories', 'topics'],
+    });
+  
+    return plainToInstance(AdminViewCourseDto, courses, {
+      excludeExtraneousValues: true,
     });
   }
 
