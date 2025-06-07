@@ -1,16 +1,13 @@
 version: '3.8'
 services:
-  postgres:
-    image: postgres:latest
-    container_name: postgres-music
-    environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: music
+  redis:
+    image: redis:latest
+    container_name: redis-cache
     ports:
-      - "5432:5432"
+      - "6379:6379"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - redisdata:/data
+    command: redis-server --appendonly yes
 
 volumes:
-  pgdata:
+  redisdata:

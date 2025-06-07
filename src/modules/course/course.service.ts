@@ -20,7 +20,7 @@ export class CourseService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createCourseDto: CreateCourseDto, uid: string): Promise<Course> {
+  async create(createCourseDto: CreateCourseDto, uid: string, file?: string): Promise<Course> {
     const instructor = await this.userRepository.findOne({
       where: { id: Number(uid) },
     });
@@ -41,10 +41,12 @@ export class CourseService {
         description: 'Some categories not found',
       });
     }
-
+    
     const course = this.courseRepository.create({
       ...createCourseDto,
+      instructor,
       categories,
+      imageUrl: file ? file : undefined,
     });
 
     return this.courseRepository.save(course);
@@ -56,7 +58,7 @@ export class CourseService {
     });
   }
 
-  async findOne(id: number, userId: string): Promise<Course> {
+  async findOne(id: number): Promise<Course> {
     const course = await this.courseRepository.findOne({
       where: { id },
       relations: ['instructor', 'topics'],
@@ -74,7 +76,7 @@ export class CourseService {
     updateCourseDto: UpdateCourseDto,
     userId: string,
   ): Promise<Course> {
-    const course = await this.findOne(id, userId);
+    const course = await this.findOne(id);
 
     if (userId) {
       const instructor = await this.userRepository.findOne({
@@ -92,8 +94,8 @@ export class CourseService {
     return this.courseRepository.save(course);
   }
 
-  async remove(id: number, userId: string): Promise<void> {
-    const course = await this.findOne(id, userId);
+  async remove(id: number): Promise<void> {
+    const course = await this.findOne(id);
     await this.courseRepository.remove(course);
   }
 

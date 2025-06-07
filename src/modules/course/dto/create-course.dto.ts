@@ -21,6 +21,11 @@ export class CreateCourseDto {
   @IsOptional()
   documentUrl?: string;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
+  
   @IsArray()
   @ArrayNotEmpty()
   @Type(() => Number)

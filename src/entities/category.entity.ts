@@ -3,7 +3,6 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { Course } from './course.entity';
 
@@ -16,6 +15,5 @@ export class Category {
   name: string;
 
   @ManyToMany(() => Course, (course) => course.categories)
-  @JoinTable()
   courses: Course[];
 }

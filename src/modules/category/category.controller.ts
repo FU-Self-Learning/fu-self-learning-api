@@ -22,25 +22,23 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  @Roles(Role.Instructor)
+  @Roles(Role.Admin)
   create(@Body() createCategoryDto: CreateCategoryDto) {
     return this.categoryService.create(createCategoryDto);
   }
 
   @Get()
-  @Roles(Role.Student, Role.Instructor)
   findAll() {
     return this.categoryService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.Student, Role.Instructor)
   findOne(@Param('id') id: string) {
     return this.categoryService.findOne(+id);
   }
 
   @Patch(':id')
-  @Roles(Role.Instructor)
+  @Roles(Role.Admin)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -49,8 +47,8 @@ export class CategoryController {
   }
 
   @Delete(':id')
-  @Roles(Role.Instructor)
+  @Roles(Role.Admin)
   remove(@Param('id') id: string) {
     return this.categoryService.remove(+id);
   }
-} 
+}

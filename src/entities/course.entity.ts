@@ -32,6 +32,9 @@ export class Course {
   topics: Topic[];
 
   @Column({ nullable: true })
+  imageUrl: string;
+
+  @Column({ nullable: true })
   documentUrl: string;
 
   @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.course)
