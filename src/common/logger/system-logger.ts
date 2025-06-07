@@ -41,6 +41,6 @@ export class SystemLogger {
 
     const logStored = JSON.stringify(logDetailsStored, null, 2);
 
-    this.logger.error(logStored);
+    // this.logger.error(logStored);
   }
 }

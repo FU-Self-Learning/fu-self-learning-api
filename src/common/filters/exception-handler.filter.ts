@@ -20,7 +20,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     /* ------------- Define requestId and log debug  -------------*/
     const requestId = uuidv4();
-    Logger.error({ requestId, exception });
+    // Logger.error({ requestId, exception });
     /* ------------- Define requestId and log debug  -------------*/
 
     /* ------------- Get response and request  -------------*/
