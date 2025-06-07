@@ -41,7 +41,7 @@ export class User {
   isActive: boolean;
 
   @Column({ type: 'text', nullable: true })
-  avatar_url: string;
+  avatarUrl: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.Student })
   role: Role;

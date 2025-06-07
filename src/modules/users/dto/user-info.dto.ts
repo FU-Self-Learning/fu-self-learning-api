@@ -14,7 +14,7 @@ export class UserInfoDto {
   dob: Date;
 
   @Expose()
-  avatar_url: string;
+  avatarUrl: string;
 
   @Expose()
   role: string;
