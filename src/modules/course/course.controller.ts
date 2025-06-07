@@ -9,7 +9,6 @@ import {
   UseGuards,
   Request,
 } from '@nestjs/common';
-import { Request as ExpressRequest } from 'express';
 import { CourseService } from './course.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
@@ -27,7 +26,7 @@ export class CourseController {
   @Post()
   @Roles(Role.Instructor)
   create(@Body() createCourseDto: CreateCourseDto, @Request() req) {
-    return this.courseService.create(createCourseDto, req.user);
+    return this.courseService.create(createCourseDto, req.user.id);
   }
 
   @Get()
@@ -39,7 +38,7 @@ export class CourseController {
   @Get(':id')
   @Roles(Role.Student, Role.Instructor)
   findOne(@Param('id') id: string, @Request() req: CustomRequest) {
-    return this.courseService.findOne(+id, req.userInfo.uid.toString());
+    return this.courseService.findOne(+id, req.user.uid);
   }
 
   @Patch(':id')

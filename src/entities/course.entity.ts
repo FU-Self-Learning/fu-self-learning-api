@@ -6,10 +6,13 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Topic } from './topic.entity';
 import { CommentCourse } from './comment-course.entity';
+import { Category } from './category.entity';
 
 @Entity('courses')
 export class Course {
@@ -29,14 +32,18 @@ export class Course {
   topics: Topic[];
 
   @Column({ nullable: true })
-  document_url: string;
+  documentUrl: string;
 
-  @OneToMany(() => CommentCourse, (CommentCourse) => CommentCourse.course)
-  comments: Comment[];
+  @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.course)
+  comments: CommentCourse[];
+
+  @ManyToMany(() => Category, (category) => category.courses)
+  @JoinTable()
+  categories: Category[];
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

@@ -17,6 +17,8 @@ import { PostModule } from './modules/post/post.module';
 import { FollowModule } from './modules/follow/follow.module';
 import { CommentPostModule } from './modules/comment-post/comment-post.module';
 import { FlashcardsModule } from './modules/flashcards/flashcards.module';
+import { CategoryModule } from './modules/category/category.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -41,6 +43,7 @@ import { FlashcardsModule } from './modules/flashcards/flashcards.module';
     FollowModule,
     CommentPostModule,
     FlashcardsModule,
+    CategoryModule,
   ],
   controllers: [AppController],
   providers: [

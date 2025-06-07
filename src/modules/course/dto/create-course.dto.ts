@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsArray,
+  IsInt,
+  ArrayNotEmpty,
+} from 'class-validator';
 
 export class CreateCourseDto {
   @IsString()
@@ -9,11 +17,13 @@ export class CreateCourseDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNumber()
-  @IsNotEmpty()
-  instructorId: number;
-
   @IsString()
   @IsOptional()
-  document_url?: string;
-} 
+  documentUrl?: string;
+
+  @IsArray()
+  @ArrayNotEmpty()
+  @Type(() => Number)
+  @IsInt({ each: true })
+  categoryIds: number[];
+}
