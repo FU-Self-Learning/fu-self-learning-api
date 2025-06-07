@@ -12,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
 import { redisPub, redisSub } from '../redis/redis.provider';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true, namespace: '/chat' })
 export class ChatGateway
@@ -20,18 +21,20 @@ export class ChatGateway
   @WebSocketServer()
   server: Server;
 
+  private readonly logger = new Logger(ChatGateway.name);
+
   constructor(private readonly chatService: ChatService) {}
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId;
     if (userId) {
       client.join(userId.toString());
-      console.log(`Client connected: ${client.id}, joined room ${userId}`);
+      this.logger.log(`Client connected: ${client.id}, joined room ${userId}`);
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   async onModuleInit() {
