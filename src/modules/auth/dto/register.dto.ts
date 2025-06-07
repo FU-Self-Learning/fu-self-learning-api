@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength } from 'class-validator';
+import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
 
 export class RegisterDto {
   @IsString()
@@ -16,6 +16,11 @@ export class RegisterDto {
 
   @IsString()
   @IsNotEmpty()
-  @MinLength(6, { message: 'Confirm password must be at least 6 characters long' })
+  @MinLength(6, {
+    message: 'Confirm password must be at least 6 characters long',
+  })
   confirmPassword: string;
+
+  @IsOptional()
+  avatarUrl?: string;
 }

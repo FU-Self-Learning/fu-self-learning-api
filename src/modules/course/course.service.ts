@@ -1,10 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Course } from '../../entities/course.entity';
 import { User } from '../../entities/user.entity';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Role } from 'src/common/enums/role.enum';
+import { Category } from 'src/entities/category.entity';
+import { ErrorMessage } from 'src/common/constants/error-message.constant';
 
 @Injectable()
 export class CourseService {
@@ -13,6 +16,8 @@ export class CourseService {
     private courseRepository: Repository<Course>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) {}
 
   async create(createCourseDto: CreateCourseDto, uid: string): Promise<Course> {
@@ -21,12 +26,25 @@ export class CourseService {
     });
 
     if (!instructor) {
-      throw new NotFoundException('Instructor not found');
+      throw new BadRequestException({
+        message: ErrorMessage.INVALID_REQUEST_INPUT,
+        description: 'Instructor not found',
+      });
+    }
+    const categories = await this.findCategoriesByIds(
+      createCourseDto.categoryIds,
+    );
+
+    if (categories.length !== createCourseDto.categoryIds.length) {
+      throw new BadRequestException({
+        message: ErrorMessage.INVALID_REQUEST_INPUT,
+        description: 'Some categories not found',
+      });
     }
 
     const course = this.courseRepository.create({
       ...createCourseDto,
-      instructor,
+      categories,
     });
 
     return this.courseRepository.save(course);
@@ -45,22 +63,26 @@ export class CourseService {
     });
 
     if (!course) {
-      throw new NotFoundException('Course not found');
+      throw new BadRequestException('Course not found');
     }
 
     return course;
   }
 
-  async update(id: number, updateCourseDto: UpdateCourseDto, userId: string): Promise<Course> {
+  async update(
+    id: number,
+    updateCourseDto: UpdateCourseDto,
+    userId: string,
+  ): Promise<Course> {
     const course = await this.findOne(id, userId);
 
-    if (updateCourseDto.instructorId) {
+    if (userId) {
       const instructor = await this.userRepository.findOne({
-        where: { id: updateCourseDto.instructorId },
+        where: { id: Number(userId) },
       });
 
-      if (!instructor) {
-        throw new NotFoundException('Instructor not found');
+      if (!instructor || instructor.role !== Role.Instructor) {
+        throw new BadRequestException('Instructor not found or not authorized');
       }
 
       course.instructor = instructor;
@@ -74,4 +96,35 @@ export class CourseService {
     const course = await this.findOne(id, userId);
     await this.courseRepository.remove(course);
   }
-} 
+
+  // ================================ Category ================================
+
+  async createCategory(name: string): Promise<Category> {
+    const category = this.categoryRepository.create({ name });
+    return this.categoryRepository.save(category);
+  }
+
+  async findAllCategories(): Promise<Category[]> {
+    return this.categoryRepository.find();
+  }
+
+  async findOneCategory(id: number): Promise<Category> {
+    const category = await this.categoryRepository.findOne({ where: { id } });
+    if (!category) {
+      throw new BadRequestException('Category not found');
+    }
+    return category;
+  }
+
+  async findCategoriesByIds(ids: number[]): Promise<Category[]> {
+    const validIds = ids
+      .map((id) => Number(id))
+      .filter((id) => Number.isInteger(id)); // hoặc !isNaN(id) && Number.isFinite(id)
+  
+    if (validIds.length !== ids.length) {
+      throw new BadRequestException('Invalid category ID(s) provided');
+    }
+  
+    return this.categoryRepository.findBy({ id: In(validIds) });
+  }
+}

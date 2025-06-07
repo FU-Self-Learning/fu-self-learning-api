@@ -20,7 +20,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
   catch(exception: HttpException, host: ArgumentsHost) {
     /* ------------- Define requestId and log debug  -------------*/
     const requestId = uuidv4();
-    Logger.error({ requestId, exception });
+    // Logger.error({ requestId, exception });
     /* ------------- Define requestId and log debug  -------------*/
 
     /* ------------- Get response and request  -------------*/
@@ -31,7 +31,7 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
   
 
     /* ------------- Get request infomation  -------------*/
-    const uid = request.userInfo?.uid;
+    const uid = request.user?.uid;
     const forwardedIP = request.headers['x-forwarded-for']?.toString().split(',')[0];
     const userIP = forwardedIP || request.socket.remoteAddress;
     const metadata = {

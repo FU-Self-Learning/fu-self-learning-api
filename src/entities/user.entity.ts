@@ -41,7 +41,7 @@ export class User {
   isActive: boolean;
 
   @Column({ type: 'text', nullable: true })
-  avatar_url: string;
+  avatarUrl: string;
 
   @Column({ type: 'enum', enum: Role, default: Role.Student })
   role: Role;
@@ -95,8 +95,8 @@ export class User {
   quizResults: QuizResult[];
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

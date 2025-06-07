@@ -202,8 +202,8 @@ export class UsersService {
 
     try {
       // Delete old avatar if exists
-      if (user.avatar_url) {
-        const publicId = this.extractPublicIdFromUrl(user.avatar_url);
+      if (user.avatarUrl) {
+        const publicId = this.extractPublicIdFromUrl(user.avatarUrl);
         await this.cloudinaryService.deleteImage(publicId);
       }
 
@@ -211,7 +211,7 @@ export class UsersService {
       const result = await this.cloudinaryService.uploadImage(file.path);
 
       // Update user with new avatar URL
-      user.avatar_url = result.secure_url;
+      user.avatarUrl = result.secure_url;
       const updatedUser = await this.usersRepository.save(user);
 
       return plainToInstance(UserInfoDto, updatedUser);
