@@ -28,6 +28,20 @@ export class CloudinaryService {
         });
     }
 
+    async uploadVideo(filePath: string): Promise<any> {
+        return await cloudinary.uploader.upload(filePath, {
+            folder: 'post-video',
+            resource_type: 'video',
+            eager: [
+              {
+                width: 854,
+                crop: 'scale',
+                format: 'mp4',
+              },
+            ],
+        });
+    }
+
     async deleteImage(publicId: string): Promise<any> {
         return await cloudinary.uploader.destroy(publicId);
     }

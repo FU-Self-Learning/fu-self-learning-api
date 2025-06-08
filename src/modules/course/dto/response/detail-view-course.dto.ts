@@ -18,10 +18,16 @@ class _CategoryDto {
 
 class _TopicDto {
   @Expose()
+  id: number;
+  
+  @Expose()
   title: string;
+
+  @Expose()
+  description: string;
 }
 
-export class AdminViewCourseDto {
+export class DetailViewCourseDto {
   @Expose()
   id: number;
 
@@ -35,6 +41,9 @@ export class AdminViewCourseDto {
   imageUrl: string;
 
   @Expose()
+  videoIntroUrl: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()
@@ -44,4 +53,8 @@ export class AdminViewCourseDto {
   @Expose()
   @Type(() => _CategoryDto)
   categories: _CategoryDto[];
+
+  @Expose()
+  @Type(() => _TopicDto)
+  topics: _TopicDto[];
 }

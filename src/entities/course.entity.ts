@@ -35,6 +35,9 @@ export class Course {
   imageUrl: string;
 
   @Column({ nullable: true })
+  videoIntroUrl: string;
+
+  @Column({ nullable: true })
   documentUrl: string;
 
   @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.course)

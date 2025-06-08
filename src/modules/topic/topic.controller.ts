@@ -3,32 +3,45 @@ import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/create-topic.dto';
 import { UpdateTopicDto } from './dto/update-topic.dto';
 
-@Controller('topics')
+@Controller('courses/:courseId/topics')
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Post()
-  create(@Body() createTopicDto: CreateTopicDto) {
-    return this.topicService.create(createTopicDto);
+  create(
+    @Param('courseId') courseId: string,
+    @Body() createTopicDto: CreateTopicDto,
+  ) {
+    return this.topicService.create(+courseId, createTopicDto);
   }
 
   @Get()
-  findAll() {
-    return this.topicService.findAll();
+  findAll(@Param('courseId') courseId: string) {
+    return this.topicService.findAllByCourse(+courseId);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.topicService.findOne(+id);
+  findOne(
+    @Param('courseId') courseId: string,
+    @Param('id') id: string,
+  ) {
+    return this.topicService.findOneByCourse(+courseId, +id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTopicDto: UpdateTopicDto) {
-    return this.topicService.update(+id, updateTopicDto);
+  update(
+    @Param('courseId') courseId: string,
+    @Param('id') id: string,
+    @Body() updateTopicDto: UpdateTopicDto,
+  ) {
+    return this.topicService.updateByCourse(+courseId, +id, updateTopicDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.topicService.remove(+id);
+  remove(
+    @Param('courseId') courseId: string,
+    @Param('id') id: string,
+  ) {
+    return this.topicService.removeByCourse(+courseId, +id);
   }
 } 

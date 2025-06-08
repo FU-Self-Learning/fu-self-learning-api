@@ -10,6 +10,7 @@ import { Category } from 'src/entities/category.entity';
 import { ErrorMessage } from 'src/common/constants/error-message.constant';
 import { AdminViewCourseDto } from './dto/response/admin-view-courses.dto';
 import { plainToInstance } from 'class-transformer';
+import { DetailViewCourseDto } from './dto/response/detail-view-course.dto';
 
 @Injectable()
 export class CourseService {
@@ -22,7 +23,12 @@ export class CourseService {
     private categoryRepository: Repository<Category>,
   ) {}
 
-  async create(createCourseDto: CreateCourseDto, uid: string, file?: string): Promise<Course> {
+  async create(
+    createCourseDto: CreateCourseDto,
+    uid: string,
+    file?: string,
+    video?: string,
+  ): Promise<Course> {
     const instructor = await this.userRepository.findOne({
       where: { id: Number(uid) },
     });
@@ -43,12 +49,13 @@ export class CourseService {
         description: 'Some categories not found',
       });
     }
-    
+
     const course = this.courseRepository.create({
       ...createCourseDto,
       instructor,
       categories,
       imageUrl: file ? file : undefined,
+      videoIntroUrl: video ? video : undefined,
     });
 
     return this.courseRepository.save(course);
@@ -64,29 +71,33 @@ export class CourseService {
     const courses = await this.courseRepository.find({
       relations: ['instructor', 'categories', 'topics'],
     });
-  
+
     return plainToInstance(AdminViewCourseDto, courses, {
       excludeExtraneousValues: true,
     });
   }
 
-  async findOne(id: number): Promise<Course> {
+  async findOne(id: number): Promise<DetailViewCourseDto> {
     const course = await this.courseRepository.findOne({
       where: { id },
-      relations: ['instructor', 'topics'],
+      relations: ['instructor', 'categories', 'topics'],
     });
 
     if (!course) {
       throw new BadRequestException('Course not found');
     }
 
-    return course;
+    return plainToInstance(DetailViewCourseDto, course, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async update(
     id: number,
     updateCourseDto: UpdateCourseDto,
     userId: string,
+    imageUrl?: string,
+    videoIntroUrl?: string,
   ): Promise<Course> {
     const course = await this.findOne(id);
 
@@ -102,13 +113,29 @@ export class CourseService {
       course.instructor = instructor;
     }
 
+    if (imageUrl) {
+      course.imageUrl = imageUrl;
+    }
+
+    if (videoIntroUrl) {
+      course.videoIntroUrl = videoIntroUrl;
+    }
     Object.assign(course, updateCourseDto);
     return this.courseRepository.save(course);
   }
 
   async remove(id: number): Promise<void> {
-    const course = await this.findOne(id);
+    const course = await this.courseRepository.findOne({ where: { id } });
+    if (!course) {
+      throw new BadRequestException('Course not found');
+    }
+
     await this.courseRepository.remove(course);
+  }
+
+  async isCourseExist(id: number): Promise<boolean> {
+    const course = await this.courseRepository.findOne({ where: { id } });
+    return !!course;
   }
 
   // ================================ Category ================================
@@ -134,11 +161,11 @@ export class CourseService {
     const validIds = ids
       .map((id) => Number(id))
       .filter((id) => Number.isInteger(id)); // hoặc !isNaN(id) && Number.isFinite(id)
-  
+
     if (validIds.length !== ids.length) {
       throw new BadRequestException('Invalid category ID(s) provided');
     }
-  
+
     return this.categoryRepository.findBy({ id: In(validIds) });
   }
 }
