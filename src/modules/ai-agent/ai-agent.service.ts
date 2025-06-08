@@ -64,6 +64,7 @@ export class AiAgentService {
       }
       const course = await this.courseService.create(responseJson.summary, uid);
       const topics = await this.topicService.createMany(
+        course.id,
         responseJson.learning_topics,
       );
       return {

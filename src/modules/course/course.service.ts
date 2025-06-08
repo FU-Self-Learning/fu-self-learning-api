@@ -11,6 +11,7 @@ import { ErrorMessage } from 'src/common/constants/error-message.constant';
 import { AdminViewCourseDto } from './dto/response/admin-view-courses.dto';
 import { plainToInstance } from 'class-transformer';
 import { DetailViewCourseDto } from './dto/response/detail-view-course.dto';
+import { Topic } from 'src/entities/topic.entity';
 
 @Injectable()
 export class CourseService {
@@ -21,6 +22,8 @@ export class CourseService {
     private userRepository: Repository<User>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Topic)
+    private topicRepository: Repository<Topic>,
   ) {}
 
   async create(
@@ -87,7 +90,13 @@ export class CourseService {
       throw new BadRequestException('Course not found');
     }
 
-    return plainToInstance(DetailViewCourseDto, course, {
+    const totalDuration = await this.calculateTotalDuration(course);
+    const totalLessons = await this.calculateTotalLessons(course);
+    return plainToInstance(DetailViewCourseDto, {
+      ...course,
+      totalDuration,
+      totalLessons,
+    }, {
       excludeExtraneousValues: true,
     });
   }
@@ -136,6 +145,31 @@ export class CourseService {
   async isCourseExist(id: number): Promise<boolean> {
     const course = await this.courseRepository.findOne({ where: { id } });
     return !!course;
+  }
+  
+  async calculateTotalDuration(course: Course): Promise<number> {
+    const topics = await this.topicRepository.find({
+      where: { course: { id: course.id } },
+      relations: ['lessons'],
+    });
+    const totalDuration = topics.reduce(
+      (acc, topic) =>
+        acc +
+        topic.lessons.reduce(
+          (acc, lesson) => acc + lesson.videoDuration,
+          0,
+        ),
+      0,
+    );
+    return totalDuration;
+  }
+
+  async calculateTotalLessons(course: Course): Promise<number> {
+    const topics = await this.topicRepository.find({
+      where: { course: { id: course.id } },
+      relations: ['lessons'],
+    });
+    return topics.reduce((acc, topic) => acc + topic.lessons.length, 0);
   }
 
   // ================================ Category ================================

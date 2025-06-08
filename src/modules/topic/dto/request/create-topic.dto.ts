@@ -8,8 +8,4 @@ export class CreateTopicDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-
-  @IsNumber()
-  @IsNotEmpty()
-  courseId: number;
 } 

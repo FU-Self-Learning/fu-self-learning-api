@@ -6,6 +6,9 @@ class _InstructorDto {
 
   @Expose()
   avatarUrl: string;
+
+  @Expose()
+  email: string;
 }
 
 class _CategoryDto {
@@ -19,7 +22,7 @@ class _CategoryDto {
 class _TopicDto {
   @Expose()
   id: number;
-  
+
   @Expose()
   title: string;
 
@@ -42,6 +45,12 @@ export class DetailViewCourseDto {
 
   @Expose()
   videoIntroUrl: string;
+
+  @Expose()
+  totalDuration: number;
+
+  @Expose()
+  totalLessons: number;
 
   @Expose()
   createdAt: Date;

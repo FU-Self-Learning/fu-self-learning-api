@@ -18,8 +18,9 @@ import { FollowModule } from './modules/follow/follow.module';
 import { CommentPostModule } from './modules/comment-post/comment-post.module';
 import { FlashcardsModule } from './modules/flashcards/flashcards.module';
 import { CategoryModule } from './modules/category/category.module';
-
 import { ChatModule } from './modules/chat/chat.module';
+import { LessonModule } from './modules/lesson/lesson.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -46,6 +47,7 @@ import { ChatModule } from './modules/chat/chat.module';
     FlashcardsModule,
     CategoryModule,
     ChatModule,
+    LessonModule
   ],
   controllers: [AppController],
   providers: [

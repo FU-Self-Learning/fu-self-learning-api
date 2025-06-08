@@ -12,6 +12,7 @@ import { Flashcard } from './flashcard.entity';
 import { AIContentRequest } from './ai-content-request.entity';
 import { StudySession } from './study-session.entity';
 import { QuizQuestion } from './quiz-question.entity';
+import { Lesson } from './lesson.entity';
 
 @Entity('topics')
 export class Topic {
@@ -20,6 +21,9 @@ export class Topic {
 
   @ManyToOne(() => Course, (course) => course.topics)
   course: Course;
+
+  @OneToMany(() => Lesson, (lesson) => lesson.topic)
+  lessons: Lesson[];
 
   @OneToMany(() => Flashcard, (card) => card.topic)
   flashcards: Flashcard[];
@@ -40,8 +44,8 @@ export class Topic {
   description: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }
