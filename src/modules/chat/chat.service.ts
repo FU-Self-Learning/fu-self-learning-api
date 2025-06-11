@@ -1,4 +1,3 @@
-// src/chat/chat.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocialInteraction } from 'src/entities/social-interaction.entity';
@@ -24,8 +23,8 @@ export class ChatService {
     }
 
     const newMsg = this.chatRepo.create({
-      sender_user: sender,
-      receiver_user: receiver,
+      senderUser: sender,
+      receiverUser: receiver,
       message: dto.message,
     });
 
@@ -36,7 +35,7 @@ export class ChatService {
       senderUserId: sender.id,
       receiverUserId: receiver.id,
       message: saved.message,
-      createdAt: saved.created_at,
+      createdAt: saved.createdAt,
     };
   }
 
@@ -44,24 +43,24 @@ export class ChatService {
     const messages = await this.chatRepo.find({
       where: [
         {
-          sender_user: { id: senderUserId },
-          receiver_user: { id: receiverUserId },
+          senderUser: { id: senderUserId },
+          receiverUser: { id: receiverUserId },
         },
         {
-          sender_user: { id: receiverUserId },
-          receiver_user: { id: senderUserId },
+          senderUser: { id: receiverUserId },
+          receiverUser: { id: senderUserId },
         },
       ],
-      relations: ['sender_user', 'receiver_user'],
-      order: { created_at: 'ASC' },
+      relations: ['senderUser', 'receiverUser'],
+      order: { createdAt: 'ASC' },
     });
 
     return messages.map((msg) => ({
       id: msg.id,
-      senderId: msg.sender_user?.id ?? null,
-      receiverId: msg.receiver_user?.id ?? null,
+      senderId: msg.senderUser?.id ?? null,
+      receiverId: msg.receiverUser?.id ?? null,
       message: msg.message,
-      createdAt: msg.created_at,
+      createdAt: msg.createdAt,
     }));
   }
 }

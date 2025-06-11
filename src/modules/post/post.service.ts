@@ -70,7 +70,7 @@ export class PostService {
   async findAll(): Promise<Post[]> {
     return this.postRepo.find({
       relations: ['user'],
-      order: { created_at: 'DESC' },
+      order: { createdAt: 'DESC' },
     });
   }
 

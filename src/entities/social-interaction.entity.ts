@@ -16,18 +16,18 @@ export class SocialInteraction {
 
   @ManyToOne(() => User, (user) => user.sender)
   @JoinColumn({ name: 'sender_user_id' })
-  sender_user: User;
+  senderUser: User;
 
   @ManyToOne(() => User, (user) => user.receiver)
   @JoinColumn({ name: 'receiver_user_id' })
-  receiver_user: User;
+  receiverUser: User;
 
   @Column('text')
   message: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

@@ -1,5 +1,11 @@
-// src/redis/redis.provider.ts
 import Redis from 'ioredis';
 
-export const redisPub = new Redis(); // Publisher
-export const redisSub = new Redis(); // Subscriber
+const redisConfig = {
+  host: "ballast.proxy.rlwy.net",
+  port: 31644,
+  password: "EvYGuFQtRBFLRwhoBPJqoZIZfARrwfmr",
+  db: 0,
+};
+
+export const redisPub = new Redis(redisConfig);
+export const redisSub = new Redis(redisConfig);

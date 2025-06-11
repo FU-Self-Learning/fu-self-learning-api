@@ -20,8 +20,8 @@ export class FollowService {
             throw new Error("User not found");
         }
         const follow = this.followRepository.create({
-            followed_user: followedUser,
-            following_user: followingUser,
+            followedUser: followedUser,
+            followingUser: followingUser,
         });
 
         return this.followRepository.save(follow);
@@ -33,8 +33,8 @@ export class FollowService {
             throw new Error("User not found");
         }
         return this.followRepository.find({
-            where: { followed_user: { id: userId } },
-            relations: ["following_user"],
+            where: { followedUser: { id: userId } },
+            relations: ["followingUser"],
         });
     }
 
@@ -44,7 +44,7 @@ export class FollowService {
             throw new Error("User not found");
         }
         return this.followRepository.find({
-            where: { following_user: { id: userId } },
+            where: { followingUser: { id: userId } },
             relations: ["followed_user"],
         });
     }
@@ -52,8 +52,8 @@ export class FollowService {
     async unfollow(followingId: number, followedId: number): Promise<void> {
         const follow = await this.followRepository.findOne({
             where: {
-                following_user: { id: followingId },
-                followed_user: { id: followedId },
+                followingUser: { id: followingId },
+                followedUser: { id: followedId },
             },
         });
 
