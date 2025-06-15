@@ -19,8 +19,8 @@ export class Post {
   @Column('text')
   body: string;
 
-  @Column()
-  image: string;
+  @Column('text', { array: true, default: [] })
+  images: string[];
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;

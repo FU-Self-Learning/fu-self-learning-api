@@ -1,10 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { UsersService } from '../users/users.service';
 import { CloudinaryService } from '../../common/cloudinary/cloudinary.service';
 
 @Injectable()
@@ -12,99 +11,117 @@ export class PostService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepo: Repository<Post>,
-    private readonly userService: UsersService,
-    private readonly cloudinary: CloudinaryService,
-  ) { }
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
-  private async uploadImage(file?: Express.Multer.File): Promise<string> {
-    if (!file?.path) return '';
-    try {
-      const result = await this.cloudinary.uploadImage(file.path);
-      return result.secure_url;
-    } catch (err) {
-      throw new BadRequestException('Failed to upload image: ' + err.message);
+  async create(dto: CreatePostDto, userId: number, files?: Express.Multer.File[]) {
+    let imageUrls: string[] = [];
+    
+    if (files && files.length > 0) {
+      const uploadPromises = files.map(file => 
+        this.cloudinaryService.uploadImage(file.path)
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      imageUrls = uploadResults.map(result => result.secure_url);
     }
-  }
 
-  async create(
-    dto: CreatePostDto,
-    userId: number,
-    file?: Express.Multer.File,
-  ): Promise<Post> {
-    const user = await this.userService.findUserById(userId);
-    if (!user) throw new BadRequestException('User not found');
-
-    const image = await this.uploadImage(file);
-
-    const post = this.postRepo.create({
+    const newPost = this.postRepo.create({
       ...dto,
-      image,
-      user,
+      images: imageUrls,
+      user: { id: userId },
     });
 
-    return this.postRepo.save(post);
+    return this.postRepo.save(newPost);
   }
 
-  async update(
-    id: number,
-    dto: UpdatePostDto,
-    userId: number,
-    file?: Express.Multer.File,
-  ): Promise<Post> {
-    const post = await this.postRepo.findOne({
-      where: { id },
-      relations: ['user'],
-    });
-
-    if (!post) throw new BadRequestException('Post not found');
-    if (post.user.id !== userId) {
-      throw new BadRequestException('Unauthorized update attempt');
-    }
-
-    const image = file ? await this.uploadImage(file) : post.image;
-    Object.assign(post, dto, { image });
-
-    return this.postRepo.save(post);
-  }
-
-  async findAll(): Promise<Post[]> {
+  async findAll() {
     return this.postRepo.find({
       relations: ['user'],
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findOne(id: number): Promise<Post> {
+  async findOne(id: number) {
     const post = await this.postRepo.findOne({
       where: { id },
       relations: ['user'],
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        status: true,
+        images: true,
+        createdAt: true,
+        updatedAt: true,
+        user: {
+          id: true,
+        },
+      },
     });
 
-    if (!post) throw new BadRequestException('Post not found');
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+
     return post;
   }
 
-  async remove(id: number, userId: number): Promise<void> {
-    const post = await this.postRepo.findOne({
-      where: { id },
-      relations: ['user'],
-    });
+  async update(id: number, dto: UpdatePostDto, userId: number | string, files?: Express.Multer.File[]) {
+    const post = await this.findOne(id);
 
-    if (!post) throw new BadRequestException('Post not found');
-    if (post.user.id !== userId) {
-      throw new BadRequestException('Unauthorized delete attempt');
+    const postUserId = Number(post.user.id);
+    const requestUserId = Number(userId);
+
+    if (postUserId !== requestUserId) {
+      throw new ForbiddenException('You can only update your own posts');
     }
 
-    if (post.image) {
-      const publicId = this.extractPublicIdFromUrl(post.image);
-      await this.cloudinary.deleteImage(publicId);
+    let imageUrls: string[] = post.images || [];
+    
+    if (files && files.length > 0) {
+      const uploadPromises = files.map(file => 
+        this.cloudinaryService.uploadImage(file.path)
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      const newImageUrls = uploadResults.map(result => result.secure_url);
+      
+      if (dto.images) {
+        imageUrls = [...dto.images, ...newImageUrls];
+      } else {
+        imageUrls = [...imageUrls, ...newImageUrls];
+      }
+    } else if (dto.images) {
+      imageUrls = dto.images;
+    }
+
+    Object.assign(post, {
+      ...dto,
+      images: imageUrls,
+    });
+
+    return this.postRepo.save(post);
+  }
+
+  async remove(id: number, userId: number | string) {
+    const post = await this.findOne(id);
+    const postUserId = Number(post.user.id);
+    const requestUserId = Number(userId);
+
+    if (postUserId !== requestUserId) {
+      throw new ForbiddenException('You can only delete your own posts');
+    }
+
+    if (post.images && post.images.length > 0) {
+      const deletePromises = post.images.map(imageUrl => {
+        const publicId = imageUrl.split('/').pop()?.split('.')[0];
+        if (publicId) {
+          return this.cloudinaryService.deleteImage(publicId);
+        }
+      });
+      await Promise.all(deletePromises.filter(Boolean));
     }
 
     await this.postRepo.remove(post);
-  }
-
-  private extractPublicIdFromUrl(url: string): string {
-    const filename = url.split('/').pop();
-    return filename?.split('.')[0] ?? '';
+    return { message: 'Post deleted successfully' };
   }
 }
