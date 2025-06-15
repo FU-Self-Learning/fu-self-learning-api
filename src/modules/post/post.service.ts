@@ -97,7 +97,7 @@ export class PostService {
 
     if (post.image) {
       const publicId = this.extractPublicIdFromUrl(post.image);
-      await this.cloudinary.deleteImage(publicId);
+      await this.cloudinary.deleteFile(publicId);
     }
 
     await this.postRepo.remove(post);

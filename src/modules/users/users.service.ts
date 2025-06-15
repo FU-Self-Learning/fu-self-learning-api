@@ -204,7 +204,7 @@ export class UsersService {
       // Delete old avatar if exists
       if (user.avatarUrl) {
         const publicId = this.extractPublicIdFromUrl(user.avatarUrl);
-        await this.cloudinaryService.deleteImage(publicId);
+        await this.cloudinaryService.deleteFile(publicId);
       }
 
       // Upload new avatar

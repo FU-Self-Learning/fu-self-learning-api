@@ -31,6 +31,7 @@ export class CourseService {
     uid: string,
     file?: string,
     video?: string,
+    document?: string,
   ): Promise<Course> {
     const instructor = await this.userRepository.findOne({
       where: { id: Number(uid) },
@@ -59,6 +60,7 @@ export class CourseService {
       categories,
       imageUrl: file ? file : undefined,
       videoIntroUrl: video ? video : undefined,
+      documentUrl: document ? document : undefined,
     });
 
     return this.courseRepository.save(course);

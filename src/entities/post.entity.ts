@@ -19,7 +19,7 @@ export class Post {
   @Column('text')
   body: string;
 
-  @Column()
+  @Column({ nullable: true })
   image: string;
 
   @ManyToOne(() => User, (user) => user.posts)

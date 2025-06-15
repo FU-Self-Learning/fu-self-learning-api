@@ -46,7 +46,7 @@ export class PostController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (file) {
-      this.cloudinaryService.validateFile(file);
+      this.cloudinaryService.validateFile(file, 'image');
     }
 
     return this.postService.create(dto, req.user.id, file);
@@ -72,7 +72,7 @@ export class PostController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (file) {
-      this.cloudinaryService.validateFile(file);
+      this.cloudinaryService.validateFile(file, 'image');
     }
 
     return this.postService.update(+id, dto, req.user.id, file);
