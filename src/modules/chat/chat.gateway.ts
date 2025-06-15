@@ -7,12 +7,12 @@ import {
   OnGatewayDisconnect,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { OnModuleInit } from '@nestjs/common';
+import { OnModuleInit, Logger, UnauthorizedException } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
-import { redisPub, redisSub } from '../redis/redis.provider';
-import { Logger } from '@nestjs/common';
+import { LoadMessagesDto } from './dto/load-messages.dto';
+import { RedisService } from '../redis/redis.provider';
 
 @WebSocketGateway({ cors: true, namespace: '/chat' })
 export class ChatGateway
@@ -23,13 +23,23 @@ export class ChatGateway
 
   private readonly logger = new Logger(ChatGateway.name);
 
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly redisService: RedisService,
+  ) {}
 
   handleConnection(client: Socket) {
-    const userId = client.handshake.query.userId;
-    if (userId) {
+    try {
+      const userId = client.handshake.query.userId;
+      if (!userId) {
+        throw new UnauthorizedException('User ID is required');
+      }
+      
       client.join(userId.toString());
       this.logger.log(`Client connected: ${client.id}, joined room ${userId}`);
+    } catch (error) {
+      this.logger.error(`Connection error: ${error.message}`);
+      client.disconnect();
     }
   }
 
@@ -38,14 +48,23 @@ export class ChatGateway
   }
 
   async onModuleInit() {
-    await redisSub.subscribe('chat');
-    redisSub.on('message', (channel, message) => {
-      const parsed = JSON.parse(message);
-      const targetRoom = parsed.receiverUserId?.toString();
-      if (targetRoom) {
-        this.server.to(targetRoom).emit('newMessage', parsed);
-      }
-    });
+    try {
+      const redisSub = this.redisService.getRedisSub();
+      await redisSub.subscribe('chat');
+      redisSub.on('message', (channel, message) => {
+        try {
+          const parsed = JSON.parse(message);
+          const targetRoom = parsed.receiverUserId?.toString();
+          if (targetRoom) {
+            this.server.to(targetRoom).emit('newMessage', parsed);
+          }
+        } catch (error) {
+          this.logger.error(`Error processing Redis message: ${error.message}`);
+        }
+      });
+    } catch (error) {
+      this.logger.error(`Redis subscription error: ${error.message}`);
+    }
   }
 
   @SubscribeMessage('sendMessage')
@@ -53,22 +72,34 @@ export class ChatGateway
     @MessageBody() data: SendMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const message = await this.chatService.saveMessage(data);
-
-    client.emit('messageSent', message);
-    await redisPub.publish('chat', JSON.stringify(message));
+    try {
+      const message = await this.chatService.saveMessage(data);
+      client.emit('messageSent', message);
+      
+      const redisPub = this.redisService.getRedisPub();
+      await redisPub.publish('chat', JSON.stringify(message));
+    } catch (error) {
+      this.logger.error(`Error sending message: ${error.message}`);
+      client.emit('error', { message: 'Failed to send message' });
+    }
   }
 
   @SubscribeMessage('loadMessages')
   async loadMessages(
-    @MessageBody() data: { senderUserId: number; receiverUserId: number },
+    @MessageBody() data: LoadMessagesDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const messages = await this.chatService.loadMessages(
-      data.senderUserId,
-      data.receiverUserId,
-    );
-
-    client.emit('messagesLoaded', messages);
+    try {
+      const messages = await this.chatService.loadMessages(
+        data.senderUserId,
+        data.receiverUserId,
+        data.page,
+        data.limit,
+      );
+      client.emit('messagesLoaded', messages);
+    } catch (error) {
+      this.logger.error(`Error loading messages: ${error.message}`);
+      client.emit('error', { message: 'Failed to load messages' });
+    }
   }
 }

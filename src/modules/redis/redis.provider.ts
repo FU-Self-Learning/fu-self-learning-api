@@ -1,11 +1,29 @@
+import { Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
+import { ConfigService } from '@nestjs/config';
 
-const redisConfig = {
-  host: "ballast.proxy.rlwy.net",
-  port: 31644,
-  password: "EvYGuFQtRBFLRwhoBPJqoZIZfARrwfmr",
-  db: 0,
-};
+@Injectable()
+export class RedisService {
+    private readonly redisPub: Redis;
+    private readonly redisSub: Redis;
 
-export const redisPub = new Redis(redisConfig);
-export const redisSub = new Redis(redisConfig);
+    constructor(private configService: ConfigService) {
+        const redisConfig = {
+            host: this.configService.get('REDIS_HOST'),
+            port: 31644,
+            password: this.configService.get('REDIS_PASSWORD'),
+            db: 0,
+        };
+
+        this.redisPub = new Redis(redisConfig);
+        this.redisSub = new Redis(redisConfig);
+    }
+
+    getRedisPub(): Redis {
+        return this.redisPub;
+    }
+
+    getRedisSub(): Redis {
+        return this.redisSub;
+    }
+}
