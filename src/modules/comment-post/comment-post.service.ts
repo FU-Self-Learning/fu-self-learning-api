@@ -85,7 +85,7 @@ export class CommentPostService {
             throw new NotFoundException('Comment not found');
         }
 
-        if (comment.user.id !== userId) {
+        if (comment.user.id !== Number(userId)) {
             throw new NotFoundException('You are not the owner of this comment');
         }
 
@@ -103,11 +103,10 @@ export class CommentPostService {
             throw new NotFoundException('Comment not found');
         }
 
-        if (comment.user.id !== userId) {
+        if (comment.user.id !== Number(userId)) {
             throw new NotFoundException('You are not the owner of this comment');
         }
 
-        // If the comment has replies, only delete the content
         if (comment.replies && comment.replies.length > 0) {
             comment.content = '[Deleted]';
             await this.commentRepo.save(comment);
