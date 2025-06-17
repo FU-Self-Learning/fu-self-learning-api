@@ -29,6 +29,7 @@ import { storage } from 'src/common/constants/storage';
 import { FileValidator } from 'src/common/validators/file.validator';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { DetailViewCourseDto } from './dto/response/detail-view-course.dto';
+import { InstructorViewCourseDto } from './dto/response/instructor-view-course.dto';
 
 @Controller('courses')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -124,6 +125,18 @@ export class CourseController {
   @Roles(Role.Student, Role.Instructor)
   findAll(@Request() _req) {
     return this.courseService.findAllWithAdminRole();
+  }
+
+  @Get('instructor')
+  @Roles(Role.Instructor)
+  findAllOwn(@Request() req) {
+    return this.courseService.findAllOwn(req.user.id);
+  }
+
+  @Get('instructor/:id')
+  @Roles(Role.Instructor)
+  findOneManage(@Param('id') id: string, @Request() req): Promise<InstructorViewCourseDto> {
+    return this.courseService.findOneManage(+id, req.user.id);
   }
 
   @Get(':id')
