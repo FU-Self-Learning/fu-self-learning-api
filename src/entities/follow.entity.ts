@@ -14,16 +14,16 @@ export class Follow {
   id: number;
 
   @ManyToOne(() => User, (user) => user.following)
-  @JoinColumn({ name: 'following_user_id' }) // trỏ đến user đang follow người khác
-  following_user: User;
+  @JoinColumn({ name: 'following_user_id' })
+  followingUser: User;
 
   @ManyToOne(() => User, (user) => user.followers)
-  @JoinColumn({ name: 'followed_user_id' }) // trỏ đến user được follow
-  followed_user: User;
+  @JoinColumn({ name: 'followed_user_id' }) 
+  followedUser: User;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

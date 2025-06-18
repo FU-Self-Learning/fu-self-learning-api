@@ -64,28 +64,28 @@ export class User {
   @OneToMany(() => CommentPost, (CommentPost) => CommentPost.user)
   commentsPost: CommentPost[];
 
-  @OneToMany(() => Follow, (follow) => follow.following_user)
+  @OneToMany(() => Follow, (follow) => follow.followingUser)
   following: Follow[];
 
-  @OneToMany(() => Follow, (follow) => follow.followed_user)
+  @OneToMany(() => Follow, (follow) => follow.followedUser)
   followers: Follow[];
 
   @OneToMany(
     () => SocialInteraction,
-    (socialInteraction) => socialInteraction.sender_user,
+    (socialInteraction) => socialInteraction.senderUser,
   )
   sender: Follow[];
 
   @OneToMany(
     () => SocialInteraction,
-    (socialInteraction) => socialInteraction.receiver_user,
+    (socialInteraction) => socialInteraction.receiverUser,
   )
   receiver: Follow[];
 
-  @OneToMany(() => SocialInteraction, (si) => si.sender_user)
+  @OneToMany(() => SocialInteraction, (si) => si.senderUser)
   sentMessages: SocialInteraction[];
 
-  @OneToMany(() => SocialInteraction, (si) => si.receiver_user)
+  @OneToMany(() => SocialInteraction, (si) => si.receiverUser)
   receivedMessages: SocialInteraction[];
 
   @OneToMany(() => StudySession, (session) => session.user)

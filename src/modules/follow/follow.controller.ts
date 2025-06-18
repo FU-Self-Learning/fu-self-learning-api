@@ -8,9 +8,9 @@ export class FollowController {
     constructor(private readonly followService: FollowService) {}
 
     @UseGuards(JwtAuthGuard)
-    @Post()
-    create(@Body() createFollowDto: any, @Request() req) {
-        return this.followService.create(createFollowDto.followingId, req.user.id);
+    @Post('toggle')
+    toggleFollow(@Body() createFollowDto: CreateFollowDto, @Request() req) {
+        return this.followService.toggleFollow(createFollowDto.followingId, req.user.id);
     }
 
     @UseGuards(JwtAuthGuard)
@@ -23,11 +23,5 @@ export class FollowController {
     @Get('following')
     getFollowing(@Request() req) {
         return this.followService.getFollowing(req.user.id);
-    }  
-
-    @UseGuards(JwtAuthGuard)
-    @Post('unfollow')
-    unfollow(@Body() unfollowDto: CreateFollowDto, @Request() req) {
-        return this.followService.unfollow(unfollowDto.followingId, req.user.id);
     }
 }

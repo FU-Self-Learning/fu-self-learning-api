@@ -1,4 +1,3 @@
-// src/chat/chat.service.ts
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SocialInteraction } from 'src/entities/social-interaction.entity';
@@ -24,8 +23,8 @@ export class ChatService {
     }
 
     const newMsg = this.chatRepo.create({
-      sender_user: sender,
-      receiver_user: receiver,
+      senderUser: sender,
+      receiverUser: receiver,
       message: dto.message,
     });
 
@@ -36,32 +35,49 @@ export class ChatService {
       senderUserId: sender.id,
       receiverUserId: receiver.id,
       message: saved.message,
-      createdAt: saved.created_at,
+      createdAt: saved.createdAt,
     };
   }
 
-  async loadMessages(senderUserId: number, receiverUserId: number) {
-    const messages = await this.chatRepo.find({
+  async loadMessages(
+    senderUserId: number,
+    receiverUserId: number,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const [messages, total] = await this.chatRepo.findAndCount({
       where: [
         {
-          sender_user: { id: senderUserId },
-          receiver_user: { id: receiverUserId },
+          senderUser: { id: senderUserId },
+          receiverUser: { id: receiverUserId },
         },
         {
-          sender_user: { id: receiverUserId },
-          receiver_user: { id: senderUserId },
+          senderUser: { id: receiverUserId },
+          receiverUser: { id: senderUserId },
         },
       ],
-      relations: ['sender_user', 'receiver_user'],
-      order: { created_at: 'ASC' },
+      relations: ['senderUser', 'receiverUser'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
     });
 
-    return messages.map((msg) => ({
-      id: msg.id,
-      senderId: msg.sender_user?.id ?? null,
-      receiverId: msg.receiver_user?.id ?? null,
-      message: msg.message,
-      createdAt: msg.created_at,
-    }));
+    return {
+      messages: messages.map((msg) => ({
+        id: msg.id,
+        senderId: msg.senderUser?.id ?? null,
+        receiverId: msg.receiverUser?.id ?? null,
+        message: msg.message,
+        createdAt: msg.createdAt,
+      })),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 }

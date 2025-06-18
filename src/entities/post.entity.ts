@@ -19,8 +19,8 @@ export class Post {
   @Column('text')
   body: string;
 
-  @Column({ nullable: true })
-  image: string;
+  @Column('text', { array: true, default: [] })
+  images: string[];
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
@@ -29,8 +29,8 @@ export class Post {
   status: string;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

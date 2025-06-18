@@ -9,10 +9,10 @@ import {
   UseGuards,
   Request,
   UseInterceptors,
-  UploadedFile,
+  UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { tmpdir } from 'os';
@@ -39,17 +39,21 @@ export class PostController {
 
   @UseGuards(JwtAuthGuard)
   @HttpPost()
-  @UseInterceptors(FileInterceptor('image', { storage }))
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'images', maxCount: 10 }], { storage }),
+  )
   async create(
     @Body() dto: CreatePostDto,
     @Request() req,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: { images?: Express.Multer.File[] },
   ) {
-    if (file) {
-      this.cloudinaryService.validateFile(file, 'image');
+    if (files?.images) {
+      files.images.forEach(file => {
+        this.cloudinaryService.validateFile(file);
+      });
     }
 
-    return this.postService.create(dto, req.user.id, file);
+    return this.postService.create(dto, req.user.id, files?.images);
   }
 
   @Get()
@@ -64,18 +68,22 @@ export class PostController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image', { storage }))
+  @UseInterceptors(
+    FileFieldsInterceptor([{ name: 'images', maxCount: 10 }], { storage }),
+  )
   async update(
     @Param('id') id: string,
     @Body() dto: UpdatePostDto,
     @Request() req,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: { images?: Express.Multer.File[] },
   ) {
-    if (file) {
-      this.cloudinaryService.validateFile(file, 'image');
+    if (files?.images) {
+      files.images.forEach(file => {
+        this.cloudinaryService.validateFile(file);
+      });
     }
 
-    return this.postService.update(+id, dto, req.user.id, file);
+    return this.postService.update(+id, dto, req.user.id, files?.images);
   }
 
   @UseGuards(JwtAuthGuard)
