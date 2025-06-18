@@ -115,7 +115,7 @@ export class PostService {
       const deletePromises = post.images.map(imageUrl => {
         const publicId = imageUrl.split('/').pop()?.split('.')[0];
         if (publicId) {
-          return this.cloudinaryService.deleteImage(publicId);
+          return this.cloudinaryService.deleteFile(publicId, 'image');
         }
       });
       await Promise.all(deletePromises.filter(Boolean));

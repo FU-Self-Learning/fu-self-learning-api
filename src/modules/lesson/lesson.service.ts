@@ -38,6 +38,18 @@ export class LessonService {
     });
   }
 
+  async createMany(createLessonsWithTopic: CreateLessonsWithTopic[]): Promise<ViewLessonDto[]> {
+    const lessons = createLessonsWithTopic.map(async (lesson) => {
+      const topic = await this.topicService.findOne(lesson.topicId);
+      if (!topic) {
+        throw new NotFoundException(`Topic #${lesson.topicId} not found`);
+      }
+      return this.create(lesson.data, topic, lesson.videoUrl, lesson.videoDuration);
+    });
+
+    return Promise.all(lessons);
+  }
+
   async findAllByTopic(topicId: number): Promise<ViewLessonDto[]> {
     const lessons = await this.lessonRepository.find({
       where: { topic: { id: topicId } },

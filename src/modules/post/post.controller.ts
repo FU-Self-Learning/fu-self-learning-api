@@ -49,7 +49,7 @@ export class PostController {
   ) {
     if (files?.images) {
       files.images.forEach(file => {
-        this.cloudinaryService.validateFile(file);
+        this.cloudinaryService.validateFile(file, 'image');
       });
     }
 
@@ -79,7 +79,7 @@ export class PostController {
   ) {
     if (files?.images) {
       files.images.forEach(file => {
-        this.cloudinaryService.validateFile(file);
+        this.cloudinaryService.validateFile(file, 'image');
       });
     }
 
