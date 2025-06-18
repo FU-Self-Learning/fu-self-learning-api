@@ -38,6 +38,12 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('social')
+  async getUserSocial(@Request() req: any) {
+    return this.usersService.findUserSocial(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put('me')
   async updateMe(
     @Request() req: any,

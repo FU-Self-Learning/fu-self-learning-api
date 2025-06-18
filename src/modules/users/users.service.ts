@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile-dto';
 import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
@@ -13,6 +13,7 @@ import { UserInfoDto } from './dto/user-info.dto';
 import { plainToInstance } from 'class-transformer';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { ConfigService } from '@nestjs/config';
+import { Role } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +40,16 @@ export class UsersService {
 
   async findUserByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findUserSocial(currentUserId: number): Promise<User[]> {
+    return this.usersRepository.find({
+      where: {
+        isActive: true,
+        role: Not(Role.Admin),
+        id: Not(currentUserId),
+      },
+    });
   }
 
   async create(infoRegister: RegisterDto): Promise<User> {
@@ -155,17 +166,20 @@ export class UsersService {
 
     return this.tokenService.generateAccessToken(payload);
   }
-  
+
   async resetPassword(id: number): Promise<UserInfoDto> {
     const user = await this.usersRepository.findOne({ where: { id } });
     if (!user) {
       throw new BadRequestException('User not found');
     }
 
-    const newPassword = await bcrypt.hash(this.configService.get<string>('RESET_PASSWORD'), 10);
-    
+    const newPassword = await bcrypt.hash(
+      this.configService.get<string>('RESET_PASSWORD'),
+      10,
+    );
+
     user.password = newPassword;
-    
+
     await this.usersRepository.update(user.id, { password: newPassword });
 
     return plainToInstance(UserInfoDto, user);
@@ -182,10 +196,7 @@ export class UsersService {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    const hashedNewPassword = await bcrypt.hash(
-      password,
-      10,
-    );
+    const hashedNewPassword = await bcrypt.hash(password, 10);
 
     await this.usersRepository.update(user.id, { password: hashedNewPassword });
     return true;
