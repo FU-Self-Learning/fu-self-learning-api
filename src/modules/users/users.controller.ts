@@ -86,7 +86,7 @@ export class UsersController {
   ): Promise<UserInfoDto> {
 
     FileValidator.validateImage(file);
-    this.cloudinaryService.validateFile(file);
+    this.cloudinaryService.validateFile(file, 'image');
     return this.usersService.uploadAvatar(req.user.id, file);
   }
 }

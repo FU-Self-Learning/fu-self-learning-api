@@ -12,6 +12,7 @@ import { AdminViewCourseDto } from './dto/response/admin-view-courses.dto';
 import { plainToInstance } from 'class-transformer';
 import { DetailViewCourseDto } from './dto/response/detail-view-course.dto';
 import { Topic } from 'src/entities/topic.entity';
+import { InstructorViewCourseDto } from './dto/response/instructor-view-course.dto';
 
 @Injectable()
 export class CourseService {
@@ -31,6 +32,7 @@ export class CourseService {
     uid: string,
     file?: string,
     video?: string,
+    document?: string,
   ): Promise<Course> {
     const instructor = await this.userRepository.findOne({
       where: { id: Number(uid) },
@@ -59,6 +61,7 @@ export class CourseService {
       categories,
       imageUrl: file ? file : undefined,
       videoIntroUrl: video ? video : undefined,
+      documentUrl: document ? document : undefined,
     });
 
     return this.courseRepository.save(course);
@@ -201,5 +204,23 @@ export class CourseService {
     }
 
     return this.categoryRepository.findBy({ id: In(validIds) });
+  }
+
+  async findAllOwn(userId: string): Promise<Course[]> {
+    return this.courseRepository.find({
+      where: { instructor: { id: Number(userId) } },
+    });
+  }
+
+  async findOneManage(id: number, userId: string): Promise<InstructorViewCourseDto> {
+    const course = await this.courseRepository.findOne({
+      where: { id, instructor: { id: Number(userId) } },
+    });
+    if (!course) {
+      throw new BadRequestException('Course not found');
+    }
+    return plainToInstance(InstructorViewCourseDto, course, {
+      excludeExtraneousValues: true,
+    });
   }
 }
