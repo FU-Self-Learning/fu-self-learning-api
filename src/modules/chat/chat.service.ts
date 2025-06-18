@@ -39,15 +39,8 @@ export class ChatService {
     };
   }
 
-  async loadMessages(
-    senderUserId: number,
-    receiverUserId: number,
-    page: number = 1,
-    limit: number = 20,
-  ) {
-    const skip = (page - 1) * limit;
-
-    const [messages, total] = await this.chatRepo.findAndCount({
+  async loadMessages(senderUserId: number, receiverUserId: number) {
+    const messages = await this.chatRepo.find({
       where: [
         {
           senderUser: { id: senderUserId },
@@ -59,25 +52,15 @@ export class ChatService {
         },
       ],
       relations: ['senderUser', 'receiverUser'],
-      order: { createdAt: 'DESC' },
-      skip,
-      take: limit,
+      order: { createdAt: 'ASC' },
     });
 
-    return {
-      messages: messages.map((msg) => ({
-        id: msg.id,
-        senderId: msg.senderUser?.id ?? null,
-        receiverId: msg.receiverUser?.id ?? null,
-        message: msg.message,
-        createdAt: msg.createdAt,
-      })),
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+    return messages.map((msg) => ({
+      id: msg.id,
+      senderId: msg.senderUser?.id ?? null,
+      receiverId: msg.receiverUser?.id ?? null,
+      message: msg.message,
+      createdAt: msg.createdAt,
+    }));
   }
 }
