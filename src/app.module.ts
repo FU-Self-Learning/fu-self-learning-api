@@ -20,6 +20,8 @@ import { FlashcardsModule } from './modules/flashcards/flashcards.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { LessonModule } from './modules/lesson/lesson.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { InstructorRequestModule } from './modules/instructor-request/instructor-request.module';
 
 @Module({
   imports: [
@@ -47,7 +49,9 @@ import { LessonModule } from './modules/lesson/lesson.module';
     FlashcardsModule,
     CategoryModule,
     ChatModule,
-    LessonModule
+    LessonModule,
+    AdminModule,
+    InstructorRequestModule,
   ],
   controllers: [AppController],
   providers: [
