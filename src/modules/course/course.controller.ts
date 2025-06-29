@@ -122,7 +122,7 @@ export class CourseController {
   }
 
   @Get()
-  @Roles(Role.Student, Role.Instructor)
+  @Roles(Role.Student, Role.Instructor, Role.Admin)
   findAll(@Request() _req) {
     return this.courseService.findAllWithAdminRole();
   }
@@ -184,7 +184,7 @@ export class CourseController {
   }
 
   @Delete(':id')
-  @Roles(Role.Instructor)
+  @Roles(Role.Instructor, Role.Admin)
   remove(@Param('id') id: string, @Request() _req) {
     return this.courseService.remove(+id);
   }

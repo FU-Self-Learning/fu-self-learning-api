@@ -12,8 +12,10 @@ import {
   Patch,
   Param,
   ParseIntPipe,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/config/jwt';
 import { UpdateProfileDto } from './dto/update-profile-dto';
@@ -23,6 +25,8 @@ import { UserInfoDto } from './dto/user-info.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { FileValidator } from 'src/common/validators/file.validator';
 import { storage } from 'src/common/constants/storage';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('users')
 export class UsersController {
@@ -94,5 +98,38 @@ export class UsersController {
     FileValidator.validateImage(file);
     this.cloudinaryService.validateFile(file, 'image');
     return this.usersService.uploadAvatar(req.user.id, file);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('request-instructor')
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, uniqueSuffix + extname(file.originalname));
+        },
+      }),
+    }),
+  )
+  async requestToBeInstructor(
+    @Request() req: any,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const pdf = files.find(f => f.mimetype === 'application/pdf');
+    if (!pdf) {
+      throw new BadRequestException('PDF file is required');
+    }
+
+    this.cloudinaryService.validateFile(pdf, 'document');
+
+    const result = await this.cloudinaryService.uploadDocument(pdf.path);
+
+    if (!result?.secure_url) {
+      throw new BadRequestException('PDF upload failed');
+    }
+
+    return { pdfUrl: result.secure_url };
   }
 }

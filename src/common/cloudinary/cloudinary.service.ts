@@ -18,7 +18,10 @@ export class CloudinaryService {
   private readonly allowedVideoExtensions = ['.mp4', '.webm', '.mov', '.avi'];
   private readonly allowedDocumentExtensions = ['.pdf'];
 
-  validateFile(file: Express.Multer.File, type: 'image' | 'video' | 'document') {
+  validateFile(
+    file: Express.Multer.File,
+    type: 'image' | 'video' | 'document',
+  ) {
     const fileExt = extname(file.originalname).toLowerCase();
 
     let allowed;
@@ -37,7 +40,9 @@ export class CloudinaryService {
     }
 
     if (!allowed.includes(fileExt)) {
-      throw new BadRequestException(`Unsupported file type. Allowed: ${allowed.join(', ')}`);
+      throw new BadRequestException(
+        `Unsupported file type. Allowed: ${allowed.join(', ')}`,
+      );
     }
   }
 
@@ -62,13 +67,22 @@ export class CloudinaryService {
   }
 
   async uploadDocument(filePath: string): Promise<any> {
-    return await cloudinary.uploader.upload(filePath, {
-      folder: 'post-document',
-      resource_type: 'raw',
-    });
-  }
+  return await cloudinary.uploader.upload(filePath, {
+    resource_type: 'raw',
+    folder: 'upload-pdf', 
+    upload_preset: 'upload-pdf', 
+    use_filename: true,
+    unique_filename: false,
+    type: 'upload'
+  });
+}
 
-  async deleteFile(publicId: string, resourceType: 'image' | 'video' | 'raw' = 'image'): Promise<any> {
-    return await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  async deleteFile(
+    publicId: string,
+    resourceType: 'image' | 'video' | 'raw' = 'image',
+  ): Promise<any> {
+    return await cloudinary.uploader.destroy(publicId, {
+      resource_type: resourceType,
+    });
   }
 }
