@@ -28,12 +28,10 @@ export class OrderWebhookController {
         return res.status(HttpStatus.FORBIDDEN).json({ message: 'Invalid signature' });
       }
 
-      // Lấy orderCode và xác định trạng thái từ code, log để đối chiếu
       const orderCode = webhookDataVerified.orderCode?.toString();
       const code = webhookDataVerified.code;
       logger.log('Webhook received orderCode:', orderCode);
 
-      // Đối chiếu orderCode với DB
       const orderInDb = await this.orderService.getOrderByPayOsOrderId(orderCode);
       logger.log('Order in DB:', orderInDb ? JSON.stringify(orderInDb) : 'Not found');
 
