@@ -10,7 +10,9 @@ export class ChatbotService {
 
   async processMessage(messageDto: ChatMessageDto) {
     try {
-      const response = await this.grokService.generateResponse(messageDto.message);
+      const response = await this.grokService.generateResponse(
+        messageDto.message,
+      );
       return {
         response,
         timestamp: new Date().toISOString(),
@@ -20,4 +22,4 @@ export class ChatbotService {
       throw error;
     }
   }
-} 
+}

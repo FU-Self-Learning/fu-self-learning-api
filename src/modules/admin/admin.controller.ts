@@ -1,4 +1,17 @@
-import { Controller, Patch, Param, HttpException, HttpStatus, UseGuards, Get, Delete, Body, Post, Put, Req, Query } from '@nestjs/common';
+import {
+  Controller,
+  Patch,
+  Param,
+  HttpException,
+  HttpStatus,
+  UseGuards,
+  Get,
+  Delete,
+  Body,
+  Post,
+  Put,
+  Req,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { Role } from 'src/common/enums/role.enum';
 import { Roles } from 'src/config/decorators/roles.decorator';
@@ -20,12 +33,12 @@ export class AdminController {
   async getAllUsers(@Req() req) {
     const currentUserId = req.user?.userId || req.user?.id;
     const users = await this.usersService.findAll();
-    return users.filter(u => u.id !== currentUserId);
+    return users.filter((u) => u.id !== currentUserId);
   }
 
   @Get('users/:id')
   @Roles(Role.Admin)
-  async getUserDetail(@Param('id') id: string) {
+  getUserDetail(@Param('id') id: string) {
     return this.usersService.findUserById(Number(id));
   }
 
@@ -60,7 +73,7 @@ export class AdminController {
 
   @Patch('users/:id/role')
   @Roles(Role.Admin)
-  async changeUserRole(@Param('id') id: string, @Body() body: { role: Role }) {
+  changeUserRole(@Param('id') _id: string, @Body() _body: { role: Role }) {
     // TODO: Implement change user role in UsersService
     return { message: 'TODO: Change user role' };
   }
@@ -68,42 +81,42 @@ export class AdminController {
   // --- COURSE MANAGEMENT ---
   @Get('courses')
   @Roles(Role.Admin)
-  async getAllCourses() {
+  getAllCourses() {
     // TODO: Inject CourseService and use findAll/findAllWithAdminRole
     return { message: 'TODO: Get all courses' };
   }
 
   @Get('courses/:id')
   @Roles(Role.Admin)
-  async getCourseDetail(@Param('id') id: string) {
+  getCourseDetail(@Param('id') id: string) {
     // TODO: Get course detail for admin
     return { message: 'TODO: Get course detail' };
   }
 
   @Get('courses/pending')
   @Roles(Role.Admin)
-  async getPendingCourses() {
+  getPendingCourses() {
     // TODO: Get pending courses
     return { message: 'TODO: Get pending courses' };
   }
 
   @Patch('courses/:id/activate')
   @Roles(Role.Admin)
-  async activateCourse(@Param('id') id: string) {
+  activateCourse(@Param('id') id: string) {
     // TODO: Activate course
     return { message: 'TODO: Activate course' };
   }
 
   @Patch('courses/:id/deactivate')
   @Roles(Role.Admin)
-  async deactivateCourse(@Param('id') id: string) {
+  deactivateCourse(@Param('id') id: string) {
     // TODO: Deactivate course
     return { message: 'TODO: Deactivate course' };
   }
 
   @Delete('courses/:id')
   @Roles(Role.Admin)
-  async deleteCourse(@Param('id') id: string) {
+  deleteCourse(@Param('id') id: string) {
     // TODO: Delete course as admin
     return { message: 'TODO: Delete course' };
   }
@@ -111,14 +124,14 @@ export class AdminController {
   // --- POST MANAGEMENT ---
   @Get('posts')
   @Roles(Role.Admin)
-  async getAllPosts() {
+  getAllPosts() {
     // TODO: Inject PostService and use findAll
     return { message: 'TODO: Get all posts' };
   }
 
   @Delete('posts/:id')
   @Roles(Role.Admin)
-  async deletePost(@Param('id') id: string) {
+  deletePost(@Param('id') id: string) {
     // TODO: Delete post as admin
     return { message: 'TODO: Delete post' };
   }
@@ -126,14 +139,14 @@ export class AdminController {
   // --- COMMENT MANAGEMENT ---
   @Get('comments')
   @Roles(Role.Admin)
-  async getAllComments() {
+  getAllComments() {
     // TODO: Inject CommentPostService and use findAll
     return { message: 'TODO: Get all comments' };
   }
 
   @Delete('comments/:id')
   @Roles(Role.Admin)
-  async deleteComment(@Param('id') id: string) {
+  deleteComment(@Param('id') id: string) {
     // TODO: Delete comment as admin
     return { message: 'TODO: Delete comment' };
   }
@@ -141,28 +154,28 @@ export class AdminController {
   // --- CATEGORY MANAGEMENT ---
   @Get('categories')
   @Roles(Role.Admin)
-  async getAllCategories() {
+  getAllCategories() {
     // TODO: Inject CategoryService and use findAll
     return { message: 'TODO: Get all categories' };
   }
 
   @Post('categories')
   @Roles(Role.Admin)
-  async createCategory(@Body() body: any) {
+  createCategory(@Body() _body: any) {
     // TODO: Create category
     return { message: 'TODO: Create category' };
   }
 
   @Put('categories/:id')
   @Roles(Role.Admin)
-  async updateCategory(@Param('id') id: string, @Body() body: any) {
+  updateCategory(@Param('id') id: string, @Body() _body: any) {
     // TODO: Update category
     return { message: 'TODO: Update category' };
   }
 
   @Delete('categories/:id')
   @Roles(Role.Admin)
-  async deleteCategory(@Param('id') id: string) {
+  deleteCategory(@Param('id') id: string) {
     // TODO: Delete category
     return { message: 'TODO: Delete category' };
   }
@@ -173,10 +186,14 @@ export class AdminController {
   async getDashboardStats() {
     const users = await this.usersService.findAll();
     const activeCourses = await this.courseService.findAll();
-    const newSignups = users.filter(u => {
+    const newSignups = users.filter((u) => {
       const today = new Date();
       const created = new Date(u.createdAt);
-      return created.getDate() === today.getDate() && created.getMonth() === today.getMonth() && created.getFullYear() === today.getFullYear();
+      return (
+        created.getDate() === today.getDate() &&
+        created.getMonth() === today.getMonth() &&
+        created.getFullYear() === today.getFullYear()
+      );
     }).length;
     return {
       totalRevenue: 0,

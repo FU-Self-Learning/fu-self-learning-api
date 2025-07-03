@@ -19,7 +19,10 @@ export class TopicService {
     private lessonRepository: Repository<Lesson>,
   ) {}
 
-  async create(courseId: number, createTopicDto: CreateTopicDto): Promise<Topic> {
+  async create(
+    courseId: number,
+    createTopicDto: CreateTopicDto,
+  ): Promise<Topic> {
     const isCourseExist = await this.courseService.isCourseExist(courseId);
     if (!isCourseExist) {
       throw new NotFoundException(`Course not found`);
@@ -32,7 +35,10 @@ export class TopicService {
     return this.topicRepository.save(topic);
   }
 
-  async createMany(courseId: number, createTopicDtos: CreateTopicDto[]): Promise<Topic[]> {
+  async createMany(
+    courseId: number,
+    createTopicDtos: CreateTopicDto[],
+  ): Promise<Topic[]> {
     const isCourseExist = await this.courseService.isCourseExist(courseId);
     if (!isCourseExist) {
       throw new NotFoundException(`Course not found`);
@@ -42,7 +48,7 @@ export class TopicService {
       this.topicRepository.create({
         ...dto,
         course: { id: courseId },
-      })
+      }),
     );
     return this.topicRepository.save(topics);
   }
@@ -64,15 +70,21 @@ export class TopicService {
       relations: ['studySessions', 'quizQuestions', 'lessons'],
     });
 
-    return Promise.all(topics.map(async(topic) => {
-      const totalDuration = await this.calculateTotalDuration(topic);
-      return plainToInstance(ViewAllTopicDto, {
-        ...topic,
-        totalDuration,
-      }, {
-        excludeExtraneousValues: true,
-      });
-    }));
+    return Promise.all(
+      topics.map(async (topic) => {
+        const totalDuration = await this.calculateTotalDuration(topic);
+        return plainToInstance(
+          ViewAllTopicDto,
+          {
+            ...topic,
+            totalDuration,
+          },
+          {
+            excludeExtraneousValues: true,
+          },
+        );
+      }),
+    );
   }
 
   async findOne(id: number): Promise<Topic | null> {
@@ -99,7 +111,9 @@ export class TopicService {
     });
 
     if (!topic) {
-      throw new NotFoundException(`Topic #${id} not found in course #${courseId}`);
+      throw new NotFoundException(
+        `Topic #${id} not found in course #${courseId}`,
+      );
     }
 
     return topic;
@@ -148,8 +162,13 @@ export class TopicService {
   }
 
   async calculateTotalDuration(topic: Topic): Promise<number> {
-    const lessons = await this.lessonRepository.find({ where: { topic: { id: topic.id } } });
-    const totalDuration = lessons.reduce((acc, lesson) => acc + lesson.videoDuration, 0);
+    const lessons = await this.lessonRepository.find({
+      where: { topic: { id: topic.id } },
+    });
+    const totalDuration = lessons.reduce(
+      (acc, lesson) => acc + lesson.videoDuration,
+      0,
+    );
     return totalDuration;
   }
 }

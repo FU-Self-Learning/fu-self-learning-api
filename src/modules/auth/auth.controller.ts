@@ -22,12 +22,11 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private tokenService: TokenService,
-  ) { }
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleLogin() {
-  }
+  async googleLogin() {}
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))

@@ -10,4 +10,4 @@ export class ChatbotController {
   async handleMessage(@Body() messageDto: ChatMessageDto) {
     return this.chatbotService.processMessage(messageDto);
   }
-} 
+}

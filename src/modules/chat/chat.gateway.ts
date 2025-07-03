@@ -7,7 +7,7 @@ import {
   OnGatewayDisconnect,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { OnModuleInit, Logger, Inject } from '@nestjs/common';
+import { OnModuleInit, Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { SendMessageDto } from './dto/send-message.dto';
@@ -24,14 +24,16 @@ export class ChatGateway
 
   constructor(
     private readonly chatService: ChatService,
-    private readonly redisService: RedisService, 
+    private readonly redisService: RedisService,
   ) {}
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId;
     if (userId) {
       client.join(userId.toString());
-      this.logger.log(`Client connected: ${client.id}, joined room ${userId}`);
+      this.logger.log(
+        `Client connected: ${client.id}, joined room ${userId.toString()}`,
+      );
     }
   }
 

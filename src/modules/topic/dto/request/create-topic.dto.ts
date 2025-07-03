@@ -8,4 +8,4 @@ export class CreateTopicDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-} 
+}

@@ -1,4 +1,8 @@
-import { ValidationArguments, ValidatorConstraint, ValidatorConstraintInterface } from 'class-validator';
+import {
+  ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+} from 'class-validator';
 
 @ValidatorConstraint({ name: 'MatchPassword', async: false })
 export class MatchPassword implements ValidatorConstraintInterface {

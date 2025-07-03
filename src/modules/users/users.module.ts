@@ -15,7 +15,7 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_ACCESS_SECRET'),
         signOptions: { expiresIn: '1h' },
       }),

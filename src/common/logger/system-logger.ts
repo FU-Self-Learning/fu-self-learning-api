@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { createLogger, format, transports, Logger as WinstonLogger } from 'winston';
+import {
+  createLogger,
+  format,
+  transports,
+  Logger as WinstonLogger,
+} from 'winston';
 import { ErrorLogType } from './logger.type';
 
 @Injectable()
@@ -11,8 +16,9 @@ export class SystemLogger {
       level: 'error',
       format: format.combine(
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        format.printf(({ timestamp, level, message }) =>
-          `${timestamp} [${level.toUpperCase()}]: ${message}`,
+        format.printf(
+          ({ timestamp, level, message }) =>
+            `${timestamp} [${level.toUpperCase()}]: ${message}`,
         ),
       ),
       transports: [

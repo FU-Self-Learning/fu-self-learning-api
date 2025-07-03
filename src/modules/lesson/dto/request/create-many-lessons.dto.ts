@@ -1,19 +1,19 @@
-import { IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { CreateLessonDto } from "./create-lesson.dto";
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { CreateLessonDto } from './create-lesson.dto';
 
 export class CreateLessonsWithTopic {
-    @IsNumber()
-    @IsNotEmpty()
-    topicId: number;
+  @IsNumber()
+  @IsNotEmpty()
+  topicId: number;
 
-    @IsNotEmpty()
-    data: CreateLessonDto;
+  @IsNotEmpty()
+  data: CreateLessonDto;
 
-    @IsString()
-    @IsNotEmpty()
-    videoUrl: string;
+  @IsString()
+  @IsNotEmpty()
+  videoUrl: string;
 
-    @IsNumber()
-    @IsNotEmpty()
-    videoDuration: number;
+  @IsNumber()
+  @IsNotEmpty()
+  videoDuration: number;
 }

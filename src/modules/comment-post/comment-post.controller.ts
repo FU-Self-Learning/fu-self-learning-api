@@ -21,8 +21,8 @@ export class CommentPostController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() dto: CreateCommentPostDto, @Request () req) {
-    return this.commentService.create(dto,req.user.id);
+  create(@Body() dto: CreateCommentPostDto, @Request() req) {
+    return this.commentService.create(dto, req.user.id);
   }
 
   @Get()
@@ -40,14 +40,14 @@ export class CommentPostController {
   update(
     @Param('id', ParseIntPipe) id: string,
     @Body() dto: UpdateCommentPostDto,
-    @Request () req
+    @Request() req,
   ) {
     return this.commentService.update(+id, dto, req.user.id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number, @Request () req) {
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     return this.commentService.remove(id, req.user.id);
   }
 }

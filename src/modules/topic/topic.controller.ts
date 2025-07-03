@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { CreateTopicDto } from './dto/request/create-topic.dto';
 import { UpdateTopicDto } from './dto/request/update-topic.dto';
@@ -30,10 +38,7 @@ export class TopicController {
   }
 
   @Get(':id')
-  findOne(
-    @Param('courseId') courseId: string,
-    @Param('id') id: string,
-  ) {
+  findOne(@Param('courseId') courseId: string, @Param('id') id: string) {
     return this.topicService.findOneByCourse(+courseId, +id);
   }
 
@@ -47,10 +52,7 @@ export class TopicController {
   }
 
   @Delete(':id')
-  remove(
-    @Param('courseId') courseId: string,
-    @Param('id') id: string,
-  ) {
+  remove(@Param('courseId') courseId: string, @Param('id') id: string) {
     return this.topicService.removeByCourse(+courseId, +id);
   }
-} 
+}

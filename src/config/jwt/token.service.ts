@@ -28,7 +28,7 @@ export class TokenService {
   verifyToken(token: string, isRefreshToken: boolean = false): JwtPayload {
     try {
       return this.jwtService.verify(token, {
-        secret: isRefreshToken 
+        secret: isRefreshToken
           ? this.configService.get('JWT_REFRESH_SECRET')
           : this.configService.get('JWT_ACCESS_SECRET'),
       });

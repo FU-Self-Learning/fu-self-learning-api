@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { Topic } from './topic.entity';
 import { User } from './user.entity';
 
@@ -12,7 +19,7 @@ export class AIContentRequest {
 
   @ManyToOne(() => Topic, (topic) => topic.aiContentRequests)
   topic: Topic;
-  
+
   @Column({ type: 'enum', enum: ['flashcard', 'quiz'] })
   request_type: 'flashcard' | 'quiz';
 

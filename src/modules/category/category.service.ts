@@ -29,7 +29,10 @@ export class CategoryService {
     return category;
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
     const category = await this.findOne(id);
     Object.assign(category, updateCategoryDto);
     return await this.categoryRepository.save(category);
@@ -39,4 +42,4 @@ export class CategoryService {
     const category = await this.findOne(id);
     await this.categoryRepository.remove(category);
   }
-} 
+}

@@ -18,7 +18,7 @@ export class Follow {
   followingUser: User;
 
   @ManyToOne(() => User, (user) => user.followers)
-  @JoinColumn({ name: 'followed_user_id' }) 
+  @JoinColumn({ name: 'followed_user_id' })
   followedUser: User;
 
   @CreateDateColumn()
