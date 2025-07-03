@@ -2,7 +2,7 @@ services:
   - type: web
     name: nest-api
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: NODE_OPTIONS="--max-old-space-size=2048" npm run build
     startCommand: npm run start:prod
     autoDeploy: true
     envVars:
