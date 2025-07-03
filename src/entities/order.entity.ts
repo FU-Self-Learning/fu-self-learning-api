@@ -6,18 +6,15 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Course } from './course.entity';
-
-export enum OrderStatus {
-  PENDING = 'pending',
-  PAID = 'paid',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
-}
+import { OrderStatus } from '../common/enums/order-status.enum';
 
 @Entity('orders')
+@Index(['user', 'course', 'status']) // Composite index for checking existing purchases
+@Index(['payOsOrderId']) // Index for webhook lookups
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
@@ -36,7 +33,7 @@ export class Order {
   @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
   status: OrderStatus;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   payOsOrderId: string;
 
   @CreateDateColumn()

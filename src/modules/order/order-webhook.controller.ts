@@ -1,17 +1,21 @@
 import { Controller, Post, Body, Res, HttpStatus, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { OrderService } from './order.service';
-import { OrderStatus } from '../../entities/order.entity';
+import { OrderStatus } from '../../common/enums/order-status.enum';
 import PayOS from '@payos/node';
 import { Response } from 'express';
 
 @Controller('orders/webhook')
 export class OrderWebhookController {
   private payos: PayOS;
-  constructor(private readonly orderService: OrderService) {
+  constructor(
+    private readonly orderService: OrderService,
+    private readonly configService: ConfigService,
+  ) {
     this.payos = new PayOS(
-      process.env.PAYOS_CLIENT_ID as string,
-      process.env.PAYOS_API_KEY as string,
-      process.env.PAYOS_CHECKSUM_KEY as string
+      this.configService.get<string>('PAYOS_CLIENT_ID')!,
+      this.configService.get<string>('PAYOS_API_KEY')!,
+      this.configService.get<string>('PAYOS_CHECKSUM_KEY')!,
     );
   }
 
