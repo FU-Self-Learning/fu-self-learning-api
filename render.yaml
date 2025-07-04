@@ -1,12 +1,16 @@
 services:
   - type: web
-    name: nest-api
+    name: fu-learning-api
     env: node
-    buildCommand: NODE_OPTIONS="--max-old-space-size=2048" npm run build
-    startCommand: npm run start:prod
-    autoDeploy: true
+    plan: starter
+    buildCommand: yarn install && yarn build
+    startCommand: yarn start
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=2048
       - key: PORT
         value: 3000
+    healthCheckPath: /health
+    autoDeploy: true
