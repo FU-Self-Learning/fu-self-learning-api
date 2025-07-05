@@ -22,6 +22,9 @@ export class Course {
   @Column()
   title: string;
 
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  price: number;
+
   @Column('text')
   description: string;
 
