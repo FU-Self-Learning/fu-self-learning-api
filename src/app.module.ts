@@ -22,6 +22,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { LessonModule } from './modules/lesson/lesson.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { InstructorRequestModule } from './modules/instructor-request/instructor-request.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { InstructorRequestModule } from './modules/instructor-request/instructor
     LessonModule,
     AdminModule,
     InstructorRequestModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [
