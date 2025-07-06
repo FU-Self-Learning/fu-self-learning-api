@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: fu-learning-api
+    env: node
+    plan: starter
+    buildCommand: yarn install && yarn build
+    startCommand: yarn start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=2048
+      - key: PORT
+        value: 3000
+    healthCheckPath: /health
+    autoDeploy: true

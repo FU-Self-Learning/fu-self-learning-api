@@ -6,14 +6,18 @@ export const WinstonLogger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.printf(({ timestamp, level, message, context }) => {
-      return `${timestamp} [${level.toUpperCase()}]${context ? ' [' + context + ']' : ''}: ${message}`;
+      const contextStr =
+        typeof context === 'string' ? context : JSON.stringify(context);
+      return `${timestamp} [${level.toUpperCase()}]${context ? ' [' + contextStr + ']' : ''}: ${message}`;
     }),
   ),
   transports: [
     new winston.transports.Console({
       format: winston.format.combine(
         winston.format.colorize(),
-        nestWinstonModuleUtilities.format.nestLike('App', { prettyPrint: true }),
+        nestWinstonModuleUtilities.format.nestLike('App', {
+          prettyPrint: true,
+        }),
       ),
     }),
     new winston.transports.File({

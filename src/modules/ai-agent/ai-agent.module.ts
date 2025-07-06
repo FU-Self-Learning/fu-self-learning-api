@@ -9,7 +9,7 @@ import { QuizQuestion } from 'src/entities/quiz-question.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Topic, QuizQuestion])],
   controllers: [AiAgentController],
-  providers: [AiAgentService,PdfService],
+  providers: [AiAgentService, PdfService],
   exports: [AiAgentService],
 })
 export class AiAgentModule {}

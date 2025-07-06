@@ -25,7 +25,9 @@ export class CommentPost {
   @Column('text')
   content: string;
 
-  @ManyToOne(() => CommentPost, (comment) => comment.replies, { nullable: true })
+  @ManyToOne(() => CommentPost, (comment) => comment.replies, {
+    nullable: true,
+  })
   @JoinColumn({ name: 'parent_id' })
   parent: CommentPost;
 

@@ -37,7 +37,7 @@ export class GrokService implements OnModuleInit {
         },
         {
           headers: {
-            'Authorization': `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${this.apiKey}`,
             'Content-Type': 'application/json',
           },
         },
@@ -49,4 +49,4 @@ export class GrokService implements OnModuleInit {
       throw new Error('Failed to generate response from Grok API');
     }
   }
-} 
+}

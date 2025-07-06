@@ -26,7 +26,10 @@ export class FlashcardsService {
   }
 
   async findOne(id: number): Promise<Flashcard> {
-    const flashcard = await this.flashcardRepo.findOne({ where: { id }, relations: ['topic'] });
+    const flashcard = await this.flashcardRepo.findOne({
+      where: { id },
+      relations: ['topic'],
+    });
     if (!flashcard) throw new NotFoundException('Flashcard not found');
     return flashcard;
   }
@@ -36,7 +39,8 @@ export class FlashcardsService {
       where: { topic: { id: topicId } },
       relations: ['topic'],
     });
-    if (flashcards.length === 0) throw new NotFoundException('No flashcards found for this topic');
+    if (flashcards.length === 0)
+      throw new NotFoundException('No flashcards found for this topic');
     return flashcards;
   }
 
@@ -48,6 +52,7 @@ export class FlashcardsService {
 
   async remove(id: number): Promise<void> {
     const result = await this.flashcardRepo.delete(id);
-    if (result.affected === 0) throw new NotFoundException('Flashcard not found');
+    if (result.affected === 0)
+      throw new NotFoundException('Flashcard not found');
   }
 }

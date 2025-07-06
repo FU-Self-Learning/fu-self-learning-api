@@ -14,4 +14,4 @@ import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
   providers: [CourseService, CloudinaryService],
   exports: [CourseService],
 })
-export class CourseModule {} 
+export class CourseModule {}

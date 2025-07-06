@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from '../../entities/post.entity';
@@ -14,15 +18,19 @@ export class PostService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async create(dto: CreatePostDto, userId: number, files?: Express.Multer.File[]) {
+  async create(
+    dto: CreatePostDto,
+    userId: number,
+    files?: Express.Multer.File[],
+  ) {
     let imageUrls: string[] = [];
-    
+
     if (files && files.length > 0) {
-      const uploadPromises = files.map(file => 
-        this.cloudinaryService.uploadImage(file.path)
+      const uploadPromises = files.map((file) =>
+        this.cloudinaryService.uploadImage(file.path),
       );
       const uploadResults = await Promise.all(uploadPromises);
-      imageUrls = uploadResults.map(result => result.secure_url);
+      imageUrls = uploadResults.map((result) => result.secure_url);
     }
 
     const newPost = this.postRepo.create({
@@ -66,7 +74,12 @@ export class PostService {
     return post;
   }
 
-  async update(id: number, dto: UpdatePostDto, userId: number | string, files?: Express.Multer.File[]) {
+  async update(
+    id: number,
+    dto: UpdatePostDto,
+    userId: number | string,
+    files?: Express.Multer.File[],
+  ) {
     const post = await this.findOne(id);
 
     const postUserId = Number(post.user.id);
@@ -77,14 +90,14 @@ export class PostService {
     }
 
     let imageUrls: string[] = post.images || [];
-    
+
     if (files && files.length > 0) {
-      const uploadPromises = files.map(file => 
-        this.cloudinaryService.uploadImage(file.path)
+      const uploadPromises = files.map((file) =>
+        this.cloudinaryService.uploadImage(file.path),
       );
       const uploadResults = await Promise.all(uploadPromises);
-      const newImageUrls = uploadResults.map(result => result.secure_url);
-      
+      const newImageUrls = uploadResults.map((result) => result.secure_url);
+
       if (dto.images) {
         imageUrls = [...dto.images, ...newImageUrls];
       } else {
@@ -112,7 +125,7 @@ export class PostService {
     }
 
     if (post.images && post.images.length > 0) {
-      const deletePromises = post.images.map(imageUrl => {
+      const deletePromises = post.images.map((imageUrl) => {
         const publicId = imageUrl.split('/').pop()?.split('.')[0];
         if (publicId) {
           return this.cloudinaryService.deleteFile(publicId, 'image');

@@ -10,4 +10,4 @@ import { QuizQuestionService } from './quiz-question.service';
   providers: [QuizQuestionService],
   exports: [QuizQuestionService],
 })
-export class QuizQuestionModule {} 
+export class QuizQuestionModule {}

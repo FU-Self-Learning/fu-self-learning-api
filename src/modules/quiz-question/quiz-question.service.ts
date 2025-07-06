@@ -12,8 +12,12 @@ export class QuizQuestionService {
     private quizQuestionRepository: Repository<QuizQuestion>,
   ) {}
 
-  async create(createQuizQuestionDto: CreateQuizQuestionDto): Promise<QuizQuestion> {
-    const quizQuestion = this.quizQuestionRepository.create(createQuizQuestionDto);
+  async create(
+    createQuizQuestionDto: CreateQuizQuestionDto,
+  ): Promise<QuizQuestion> {
+    const quizQuestion = this.quizQuestionRepository.create(
+      createQuizQuestionDto,
+    );
     return this.quizQuestionRepository.save(quizQuestion);
   }
 
@@ -30,7 +34,10 @@ export class QuizQuestionService {
     });
   }
 
-  async update(id: number, updateQuizQuestionDto: UpdateQuizQuestionDto): Promise<QuizQuestion | null> {
+  async update(
+    id: number,
+    updateQuizQuestionDto: UpdateQuizQuestionDto,
+  ): Promise<QuizQuestion | null> {
     await this.quizQuestionRepository.update(id, updateQuizQuestionDto);
     return this.findOne(id);
   }
@@ -38,4 +45,4 @@ export class QuizQuestionService {
   async remove(id: number): Promise<void> {
     await this.quizQuestionRepository.delete(id);
   }
-} 
+}

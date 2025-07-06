@@ -18,4 +18,4 @@ export class CreateQuizQuestionDto {
   @IsNumber()
   @IsNotEmpty()
   topicId: number;
-} 
+}

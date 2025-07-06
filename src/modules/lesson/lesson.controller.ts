@@ -18,7 +18,10 @@ import { UpdateLessonDto } from './dto/request/update-lesson.dto';
 import { ViewLessonDto } from './dto/response/view-lesson.dto';
 import { CloudinaryService } from 'src/common/cloudinary/cloudinary.service';
 import { FileValidator } from 'src/common/validators/file.validator';
-import { FileInterceptor, FileFieldsInterceptor } from '@nestjs/platform-express';
+import {
+  FileInterceptor,
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
 import { storage } from 'src/common/constants/storage';
 import { TopicService } from '../topic/topic.service';
 
@@ -37,7 +40,6 @@ export class LessonController {
     @Body() createLessonDto: CreateLessonDto,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<ViewLessonDto> {
-    
     const topic = await this.topicService.findOne(+topicId);
     if (!topic) {
       throw new NotFoundException(`Topic #${topicId} not found`);
@@ -60,12 +62,7 @@ export class LessonController {
 
   @Post('many')
   @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'videos', maxCount: 10 },
-      ],
-      { storage },
-    ),
+    FileFieldsInterceptor([{ name: 'videos', maxCount: 10 }], { storage }),
   )
   async createManyWithVideos(
     @Param('topicId') topicId: string,
@@ -76,10 +73,11 @@ export class LessonController {
     try {
       createLessonsData = JSON.parse(createLessonsDataRaw);
     } catch (e) {
+      console.error(e);
       throw new BadRequestException('Invalid createLessonsData format');
     }
     const videos = files.videos || [];
-    
+
     if (videos.length === 0) {
       throw new BadRequestException('At least one video file is required');
     }

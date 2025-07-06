@@ -24,7 +24,6 @@ export class LessonService {
     videoUrl: string,
     videoDuration: number,
   ): Promise<ViewLessonDto> {
-
     const lesson = this.lessonRepository.create({
       ...createLessonDto,
       topic,
@@ -38,13 +37,20 @@ export class LessonService {
     });
   }
 
-  async createMany(createLessonsWithTopic: CreateLessonsWithTopic[]): Promise<ViewLessonDto[]> {
+  async createMany(
+    createLessonsWithTopic: CreateLessonsWithTopic[],
+  ): Promise<ViewLessonDto[]> {
     const lessons = createLessonsWithTopic.map(async (lesson) => {
       const topic = await this.topicService.findOne(lesson.topicId);
       if (!topic) {
         throw new NotFoundException(`Topic #${lesson.topicId} not found`);
       }
-      return this.create(lesson.data, topic, lesson.videoUrl, lesson.videoDuration);
+      return this.create(
+        lesson.data,
+        topic,
+        lesson.videoUrl,
+        lesson.videoDuration,
+      );
     });
 
     return Promise.all(lessons);

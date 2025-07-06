@@ -8,4 +8,4 @@ export class CreateLessonDto {
   @IsString()
   @IsNotEmpty()
   description: string;
-} 
+}

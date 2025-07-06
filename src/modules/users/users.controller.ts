@@ -83,7 +83,9 @@ export class UsersController {
   }
 
   @Patch('reset-password/:id')
-  async resetPassword(@Param('id', ParseIntPipe) id: number): Promise<UserInfoDto> {
+  async resetPassword(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<UserInfoDto> {
     return await this.usersService.resetPassword(id);
   }
 
@@ -94,7 +96,6 @@ export class UsersController {
     @Request() req: any,
     @UploadedFile() file: Express.Multer.File,
   ): Promise<UserInfoDto> {
-
     FileValidator.validateImage(file);
     this.cloudinaryService.validateFile(file, 'image');
     return this.usersService.uploadAvatar(req.user.id, file);
@@ -107,7 +108,8 @@ export class UsersController {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, uniqueSuffix + extname(file.originalname));
         },
       }),
@@ -117,7 +119,7 @@ export class UsersController {
     @Request() req: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const pdf = files.find(f => f.mimetype === 'application/pdf');
+    const pdf = files.find((f) => f.mimetype === 'application/pdf');
     if (!pdf) {
       throw new BadRequestException('PDF file is required');
     }

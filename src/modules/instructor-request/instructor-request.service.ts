@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InstructorRequest } from 'src/entities/instructor-request.entity';
@@ -16,7 +20,10 @@ export class InstructorRequestService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  async createRequest(userId: number, pdf: Express.Multer.File): Promise<InstructorRequest> {
+  async createRequest(
+    userId: number,
+    pdf: Express.Multer.File,
+  ): Promise<InstructorRequest> {
     if (!pdf || pdf.mimetype !== 'application/pdf') {
       throw new BadRequestException('PDF file is required');
     }
@@ -27,7 +34,10 @@ export class InstructorRequestService {
     }
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
-    const request = this.instructorRequestRepo.create({ user, pdfUrl: result.secure_url });
+    const request = this.instructorRequestRepo.create({
+      user,
+      pdfUrl: result.secure_url,
+    });
     return this.instructorRequestRepo.save(request);
   }
 

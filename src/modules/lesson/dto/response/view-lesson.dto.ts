@@ -21,4 +21,4 @@ export class ViewLessonDto {
 
   @Expose()
   updatedAt: Date;
-} 
+}

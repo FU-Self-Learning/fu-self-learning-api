@@ -135,7 +135,10 @@ export class CourseController {
 
   @Get('instructor/:id')
   @Roles(Role.Instructor)
-  findOneManage(@Param('id') id: string, @Request() req): Promise<InstructorViewCourseDto> {
+  findOneManage(
+    @Param('id') id: string,
+    @Request() req,
+  ): Promise<InstructorViewCourseDto> {
     return this.courseService.findOneManage(+id, req.user.id);
   }
 
@@ -143,7 +146,7 @@ export class CourseController {
   @Roles(Role.Student, Role.Instructor)
   findOne(
     @Param('id') id: string,
-    @Request() req: CustomRequest,
+    @Request() _req: CustomRequest,
   ): Promise<DetailViewCourseDto> {
     return this.courseService.findOne(+id);
   }

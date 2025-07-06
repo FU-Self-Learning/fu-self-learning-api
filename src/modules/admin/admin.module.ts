@@ -8,9 +8,9 @@ import { CourseModule } from '../course/course.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Course,]),
+    TypeOrmModule.forFeature([User, Course]),
     UsersModule,
-    CourseModule
+    CourseModule,
   ],
   providers: [],
   controllers: [AdminController],

@@ -16,11 +16,6 @@ class _CategoryDto {
   name: string;
 }
 
-class _TopicDto {
-  @Expose()
-  title: string;
-}
-
 export class AdminViewCourseDto {
   @Expose()
   id: number;

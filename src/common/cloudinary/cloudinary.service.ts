@@ -67,15 +67,15 @@ export class CloudinaryService {
   }
 
   async uploadDocument(filePath: string): Promise<any> {
-  return await cloudinary.uploader.upload(filePath, {
-    resource_type: 'raw',
-    folder: 'upload-pdf', 
-    upload_preset: 'upload-pdf', 
-    use_filename: true,
-    unique_filename: false,
-    type: 'upload'
-  });
-}
+    return await cloudinary.uploader.upload(filePath, {
+      resource_type: 'raw',
+      folder: 'upload-pdf',
+      upload_preset: 'upload-pdf',
+      use_filename: true,
+      unique_filename: false,
+      type: 'upload',
+    });
+  }
 
   async deleteFile(
     publicId: string,

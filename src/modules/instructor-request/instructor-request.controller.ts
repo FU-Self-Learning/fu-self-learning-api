@@ -1,4 +1,17 @@
-import { Controller, Post, UseGuards, Request, UploadedFiles, UseInterceptors, BadRequestException, Body, Param, Patch, Get, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseGuards,
+  Request,
+  UploadedFiles,
+  UseInterceptors,
+  BadRequestException,
+  Body,
+  Param,
+  Patch,
+  Get,
+  Res,
+} from '@nestjs/common';
 import { JwtAuthGuard } from 'src/config/jwt';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { InstructorRequestService } from './instructor-request.service';
@@ -10,18 +23,15 @@ import { Response } from 'express';
 
 @Controller('instructor-requests')
 export class InstructorRequestController {
-  constructor(private readonly instructorRequestService: InstructorRequestService) {}
+  constructor(
+    private readonly instructorRequestService: InstructorRequestService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Post()
   @Roles(Role.Student)
   @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'pdf', maxCount: 1 },
-      ],
-      { storage },
-    ),
+    FileFieldsInterceptor([{ name: 'pdf', maxCount: 1 }], { storage }),
   )
   async createRequest(
     @Request() req: any,

@@ -18,21 +18,39 @@ export class EmailService {
     });
   }
 
-  async sendActivationEmail(fullName: string, email: string, token: string): Promise<void> {
+  async sendActivationEmail(
+    fullName: string,
+    email: string,
+    token: string,
+  ): Promise<void> {
     const activationLink = `${this.configService.get('FE_APP_URL')}/login?activateToken=${token}`;
 
-    const template = this.generateEmailActivateTemplate(fullName, activationLink);
+    const template = this.generateEmailActivateTemplate(
+      fullName,
+      activationLink,
+    );
     await this.sendEmail(email, 'Kích hoạt tài khoản', template);
   }
 
-  async sendForgotPasswordEmail(fullName: string, email: string, token: string): Promise<void> {
+  async sendForgotPasswordEmail(
+    fullName: string,
+    email: string,
+    token: string,
+  ): Promise<void> {
     const resetLink = `${this.configService.get('FE_APP_URL')}/reset-password?token=${token}`;
 
-    const template = this.generateEmailForgotPasswordTemplate(fullName, resetLink);
+    const template = this.generateEmailForgotPasswordTemplate(
+      fullName,
+      resetLink,
+    );
     await this.sendEmail(email, 'Quên Mật khẩu', template);
   }
 
-  private async sendEmail(to: string, subject: string, html: string): Promise<void> {
+  private async sendEmail(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<void> {
     try {
       await this.transporter.sendMail({
         from: this.configService.get<string>('MAIL_FROM'),
@@ -45,7 +63,10 @@ export class EmailService {
     }
   }
 
-  private generateEmailForgotPasswordTemplate(fullName: string, activationLink: string): string {
+  private generateEmailForgotPasswordTemplate(
+    fullName: string,
+    activationLink: string,
+  ): string {
     return `
         <!DOCTYPE html>
         <html>
@@ -84,7 +105,10 @@ export class EmailService {
       `;
   }
 
-  private generateEmailActivateTemplate(fullName: string, activationLink: string): string {
+  private generateEmailActivateTemplate(
+    fullName: string,
+    activationLink: string,
+  ): string {
     return `
         <!DOCTYPE html>
         <html>
@@ -124,7 +148,11 @@ export class EmailService {
       `;
   }
 
-  private generateMentorAccountEmailTemplate(fullName: string, loginLink: string, password: string): string {
+  private generateMentorAccountEmailTemplate(
+    fullName: string,
+    loginLink: string,
+    password: string,
+  ): string {
     return `
     <!DOCTYPE html>
     <html>

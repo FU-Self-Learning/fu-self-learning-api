@@ -28,11 +28,12 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<CustomRequest>();
     /* ------------- Get response and request  -------------*/
-  
 
     /* ------------- Get request infomation  -------------*/
     const uid = request.user?.uid;
-    const forwardedIP = request.headers['x-forwarded-for']?.toString().split(',')[0];
+    const forwardedIP = request.headers['x-forwarded-for']
+      ?.toString()
+      .split(',')[0];
     const userIP = forwardedIP || request.socket.remoteAddress;
     const metadata = {
       requestId,
@@ -48,7 +49,6 @@ export class ExceptionHandlerFilter implements ExceptionFilter {
       exceptionData: exception,
     };
     /* ------------- Get request infomation  -------------*/
-  
 
     /* ------------- Get exception response infomation  -------------*/
     const exceptionResponse = (exception.getResponse?.() as any) || {};

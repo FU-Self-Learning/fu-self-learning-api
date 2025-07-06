@@ -6,10 +6,9 @@ import { FlashcardsService } from './flashcards.service';
 import { TopicModule } from '../topic/topic.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Flashcard]),
-        TopicModule],
-    controllers: [FlashcardsController],
-    providers: [FlashcardsService],
-    exports: [FlashcardsService],
+  imports: [TypeOrmModule.forFeature([Flashcard]), TopicModule],
+  controllers: [FlashcardsController],
+  providers: [FlashcardsService],
+  exports: [FlashcardsService],
 })
-export class FlashcardsModule { }
+export class FlashcardsModule {}

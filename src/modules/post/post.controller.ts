@@ -48,7 +48,7 @@ export class PostController {
     @UploadedFiles() files?: { images?: Express.Multer.File[] },
   ) {
     if (files?.images) {
-      files.images.forEach(file => {
+      files.images.forEach((file) => {
         this.cloudinaryService.validateFile(file, 'image');
       });
     }
@@ -78,7 +78,7 @@ export class PostController {
     @UploadedFiles() files?: { images?: Express.Multer.File[] },
   ) {
     if (files?.images) {
-      files.images.forEach(file => {
+      files.images.forEach((file) => {
         this.cloudinaryService.validateFile(file, 'image');
       });
     }

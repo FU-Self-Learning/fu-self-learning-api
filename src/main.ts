@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const service = app.get(ConfigService);
-  
+
   // Enable CORS with credentials
   app.enableCors({
     origin: true, // or specify your frontend URL
