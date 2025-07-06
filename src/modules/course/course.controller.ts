@@ -12,10 +12,16 @@ import {
   UploadedFile,
   UploadedFiles,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { CourseService } from './course.service';
+import { CourseGenerationService } from './course-generation.service';
 import { CreateCourseDto } from './dto/request/create-course.dto';
 import { UpdateCourseDto } from './dto/request/update-course.dto';
+import {
+  GeneratedCourseDto,
+  GeneratedTopicDto,
+} from './dto/request/generate-course-from-pdf.dto';
 import { RolesGuard } from '../../config/guards/roles.guard';
 import { Roles } from '../../config/decorators/roles.decorator';
 import { Role } from 'src/common/enums/role.enum';
@@ -34,8 +40,11 @@ import { InstructorViewCourseDto } from './dto/response/instructor-view-course.d
 @Controller('courses')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CourseController {
+  private readonly logger = new Logger(CourseController.name);
+
   constructor(
     private readonly courseService: CourseService,
+    private readonly courseGenerationService: CourseGenerationService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -151,6 +160,12 @@ export class CourseController {
     return this.courseService.findOne(+id);
   }
 
+  @Get('category/:id')
+  @Roles(Role.Student, Role.Instructor)
+  findCoursesByCategory(@Param('id') id: string) {
+    return this.courseService.findCoursesByCategory(+id);
+  }
+
   @Patch(':id')
   @Roles(Role.Instructor)
   @UseInterceptors(AnyFilesInterceptor({ storage }))
@@ -190,5 +205,126 @@ export class CourseController {
   @Roles(Role.Instructor, Role.Admin)
   remove(@Param('id') id: string, @Request() _req) {
     return this.courseService.remove(+id);
+  }
+
+  // PDF Course Generation Endpoints
+  @Post('generate-from-pdf')
+  @Roles(Role.Instructor)
+  @UseInterceptors(FileFieldsInterceptor([{ name: 'pdf', maxCount: 1 }]))
+  async generateCourseFromPdf(
+    @UploadedFiles() files: { pdf?: Express.Multer.File[] },
+    @Request() req: any,
+  ) {
+    if (!files.pdf || files.pdf.length === 0) {
+      throw new BadRequestException('PDF file is required');
+    }
+
+    const pdfFile = files.pdf[0];
+
+    // Validate file type
+    if (!pdfFile.mimetype.includes('pdf')) {
+      throw new BadRequestException('File must be a PDF');
+    }
+
+    // Validate file size (max 10MB)
+    if (pdfFile.size > 10 * 1024 * 1024) {
+      throw new BadRequestException('PDF file size must be less than 10MB');
+    }
+    return this.courseGenerationService.generateCourseFromPdf(
+      pdfFile.buffer,
+      req.user.id.toString(),
+    );
+  }
+
+  @Post('create-with-structure')
+  @Roles(Role.Instructor)
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'thumbnail', maxCount: 1 },
+      { name: 'videoIntro', maxCount: 1 },
+    ]),
+  )
+  async createCourseWithStructure(
+    @Body() body: { course: GeneratedCourseDto; topics: GeneratedTopicDto[] },
+    @UploadedFiles()
+    files: {
+      thumbnail?: Express.Multer.File[];
+      videoIntro?: Express.Multer.File[];
+    },
+    @Request() req: CustomRequest,
+  ) {
+    // Validate request body
+    if (!body.course || !body.topics) {
+      throw new BadRequestException('Course and topics data are required');
+    }
+
+    // Validate file sizes
+    if (files.thumbnail && files.thumbnail.length > 0) {
+      const thumbnailFile = files.thumbnail[0];
+      if (thumbnailFile.size > 5 * 1024 * 1024) { // 5MB limit for images
+        throw new BadRequestException('Thumbnail image size must be less than 5MB');
+      }
+    }
+
+    if (files.videoIntro && files.videoIntro.length > 0) {
+      const videoFile = files.videoIntro[0];
+      if (videoFile.size > 100 * 1024 * 1024) { // 100MB limit for videos
+        throw new BadRequestException('Video intro size must be less than 100MB');
+      }
+    }
+
+    let imageUrl: string | undefined;
+    let videoIntroUrl: string | undefined;
+
+    // Upload thumbnail if provided
+    if (files.thumbnail && files.thumbnail.length > 0) {
+      const thumbnailFile = files.thumbnail[0];
+      
+      // Validate file type
+      this.cloudinaryService.validateFile(thumbnailFile, 'image');
+      
+      try {
+        const uploadedThumbnail = await this.cloudinaryService.uploadImageFromBuffer(
+          thumbnailFile.buffer,
+          'course-thumbnails'
+        );
+        imageUrl = uploadedThumbnail.secure_url;
+      } catch (error) {
+        this.logger.error('Error uploading thumbnail:', error);
+        throw new BadRequestException('Failed to upload thumbnail image');
+      }
+    }
+
+    // Upload video intro if provided
+    if (files.videoIntro && files.videoIntro.length > 0) {
+      const videoFile = files.videoIntro[0];
+      
+      // Validate file type
+      this.cloudinaryService.validateFile(videoFile, 'video');
+      
+      try {
+        const uploadedVideo = await this.cloudinaryService.uploadVideoFromBuffer(
+          videoFile.buffer,
+          'course-videos'
+        );
+        videoIntroUrl = uploadedVideo.secure_url;
+      } catch (error) {
+        this.logger.error('Error uploading video intro:', error);
+        throw new BadRequestException('Failed to upload video intro');
+      }
+    }
+
+    const course = await this.courseGenerationService.createCourseWithStructure(
+      body.course,
+      body.topics,
+      req.user.sub.toString(),
+      imageUrl,
+      videoIntroUrl,
+    );
+
+    return {
+      message: 'Course created successfully with generated structure',
+      course,
+    };
   }
 }

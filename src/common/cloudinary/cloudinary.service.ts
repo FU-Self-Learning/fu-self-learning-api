@@ -14,9 +14,25 @@ export class CloudinaryService {
     });
   }
 
-  private readonly allowedImageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+  private readonly allowedImageExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.webp',
+    '.gif',
+    '.svg',
+    '.jfif',
+  ];
   private readonly allowedVideoExtensions = ['.mp4', '.webm', '.mov', '.avi'];
-  private readonly allowedDocumentExtensions = ['.pdf'];
+  private readonly allowedDocumentExtensions = [
+    '.pdf',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+    '.ppt',
+    '.pptx',
+  ];
 
   validateFile(
     file: Express.Multer.File,
@@ -52,6 +68,29 @@ export class CloudinaryService {
     });
   }
 
+  async uploadImageFromBuffer(
+    buffer: Buffer,
+    folder: string = 'post-image',
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'image',
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        },
+      );
+
+      uploadStream.end(buffer);
+    });
+  }
+
   async uploadVideo(filePath: string): Promise<any> {
     return await cloudinary.uploader.upload(filePath, {
       folder: 'post-video',
@@ -66,11 +105,40 @@ export class CloudinaryService {
     });
   }
 
+  async uploadVideoFromBuffer(
+    buffer: Buffer,
+    folder: string = 'post-video',
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: 'video',
+          eager: [
+            {
+              width: 854,
+              crop: 'scale',
+              format: 'mp4',
+            },
+          ],
+        },
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        },
+      );
+
+      uploadStream.end(buffer);
+    });
+  }
+
   async uploadDocument(filePath: string): Promise<any> {
     return await cloudinary.uploader.upload(filePath, {
       resource_type: 'raw',
       folder: 'upload-pdf',
-      upload_preset: 'upload-pdf',
       use_filename: true,
       unique_filename: false,
       type: 'upload',

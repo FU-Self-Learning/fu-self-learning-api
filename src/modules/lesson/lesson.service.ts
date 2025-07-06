@@ -21,14 +21,14 @@ export class LessonService {
   async create(
     createLessonDto: CreateLessonDto,
     topic: Topic,
-    videoUrl: string,
-    videoDuration: number,
+    videoUrl?: string,
+    videoDuration?: number,
   ): Promise<ViewLessonDto> {
     const lesson = this.lessonRepository.create({
       ...createLessonDto,
       topic,
-      videoUrl,
-      videoDuration,
+      videoUrl: videoUrl || undefined,
+      videoDuration: videoDuration || undefined,
     });
 
     const savedLesson = await this.lessonRepository.save(lesson);
@@ -48,8 +48,8 @@ export class LessonService {
       return this.create(
         lesson.data,
         topic,
-        lesson.videoUrl,
-        lesson.videoDuration,
+        lesson.videoUrl || undefined,
+        lesson.videoDuration || undefined,
       );
     });
 

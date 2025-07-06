@@ -69,6 +69,7 @@ export class LessonController {
     @Body('createLessonsData') createLessonsDataRaw: string,
     @UploadedFiles() files: { videos?: Express.Multer.File[] },
   ): Promise<ViewLessonDto[]> {
+    // Parse JSON
     let createLessonsData: CreateLessonDto[];
     try {
       createLessonsData = JSON.parse(createLessonsDataRaw);
@@ -76,23 +77,32 @@ export class LessonController {
       console.error(e);
       throw new BadRequestException('Invalid createLessonsData format');
     }
+
     const videos = files.videos || [];
 
-    if (videos.length === 0) {
-      throw new BadRequestException('At least one video file is required');
-    }
-
-    if (videos.length !== createLessonsData.length) {
+    // Nếu có video thì check số lượng khớp
+    if (videos.length > 0 && videos.length !== createLessonsData.length) {
       throw new BadRequestException(
         `Number of videos (${videos.length}) must match number of lessons (${createLessonsData.length})`,
       );
     }
 
+    // Check topic
     const topic = await this.topicService.findOne(+topicId);
     if (!topic) {
       throw new NotFoundException(`Topic #${topicId} not found`);
     }
 
+    // Nếu không có video -> trả lesson đơn giản
+    if (videos.length === 0) {
+      const lessonsWithoutVideos = createLessonsData.map((lessonData) => ({
+        topicId: +topicId,
+        data: lessonData,
+      }));
+      return this.lessonService.createMany(lessonsWithoutVideos);
+    }
+
+    // Nếu có video -> upload lên Cloudinary
     const videoUploadPromises = videos.map(async (video) => {
       FileValidator.validateVideo(video);
       const result = await this.cloudinaryService.uploadVideo(video.path);
@@ -104,6 +114,7 @@ export class LessonController {
 
     const videoResults = await Promise.all(videoUploadPromises);
 
+    // Gán video info vào lesson
     const lessonsWithVideos = createLessonsData.map((lessonData, index) => ({
       topicId: +topicId,
       data: lessonData,

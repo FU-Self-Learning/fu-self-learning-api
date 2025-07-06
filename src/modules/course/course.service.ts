@@ -162,7 +162,10 @@ export class CourseService {
     const totalDuration = topics.reduce(
       (acc, topic) =>
         acc +
-        topic.lessons.reduce((acc, lesson) => acc + lesson.videoDuration, 0),
+        topic.lessons.reduce(
+          (acc, lesson) => acc + (lesson.videoDuration || 0),
+          0,
+        ),
       0,
     );
     return totalDuration;
@@ -174,6 +177,13 @@ export class CourseService {
       relations: ['lessons'],
     });
     return topics.reduce((acc, topic) => acc + topic.lessons.length, 0);
+  }
+
+  async findCoursesByCategory(id: number): Promise<Course[]> {
+    const courses = await this.courseRepository.find({
+      where: { categories: { id } },
+    });
+    return courses;
   }
 
   // ================================ Category ================================

@@ -34,6 +34,7 @@
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.2",
     "@payos/node": "^1.0.10",
+    "@google/generative-ai": "^0.21.0",
     "@types/cookie-parser": "^1.4.8",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",

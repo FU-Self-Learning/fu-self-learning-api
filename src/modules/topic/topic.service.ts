@@ -166,7 +166,7 @@ export class TopicService {
       where: { topic: { id: topic.id } },
     });
     const totalDuration = lessons.reduce(
-      (acc, lesson) => acc + lesson.videoDuration,
+      (acc, lesson) => acc + (lesson.videoDuration || 0),
       0,
     );
     return totalDuration;

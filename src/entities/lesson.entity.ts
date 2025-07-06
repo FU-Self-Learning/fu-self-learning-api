@@ -19,11 +19,11 @@ export class Lesson {
   @Column()
   title: string;
 
-  @Column()
-  videoUrl: string;
+  @Column({ nullable: true })
+  videoUrl?: string;
 
-  @Column()
-  videoDuration: number;
+  @Column({ nullable: true })
+  videoDuration?: number;
 
   @Column('text')
   description: string;
