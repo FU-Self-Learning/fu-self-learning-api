@@ -16,6 +16,7 @@ import { Follow } from './follow.entity';
 import { StudySession } from './study-session.entity';
 import { QuizResult } from './quiz-result.entity';
 import { CommentPost } from './comment-post.entity';
+import { StudySet } from './study-set.entity';
 
 @Entity('users')
 export class User {
@@ -93,6 +94,9 @@ export class User {
 
   @OneToMany(() => QuizResult, (result) => result.user)
   quizResults: QuizResult[];
+
+  @OneToMany(() => StudySet, (studySet) => studySet.user)
+  studySets: StudySet[];
 
   @CreateDateColumn()
   createdAt: Date;

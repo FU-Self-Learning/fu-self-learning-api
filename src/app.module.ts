@@ -23,6 +23,7 @@ import { LessonModule } from './modules/lesson/lesson.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { InstructorRequestModule } from './modules/instructor-request/instructor-request.module';
 import { OrderModule } from './modules/order/order.module';
+import { StudySetModule } from './modules/study-set/study-set.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { OrderModule } from './modules/order/order.module';
     AdminModule,
     InstructorRequestModule,
     OrderModule,
+    StudySetModule,
   ],
   controllers: [AppController],
   providers: [
