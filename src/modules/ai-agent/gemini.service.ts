@@ -55,6 +55,22 @@ export class GeminiService {
     }
   }
 
+  async generateFlashcards(prompt: string): Promise<Array<{front_text: string, back_text: string}>> {
+    try {
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      // Parse the AI response
+      console.log(text);
+      const flashcards = this.parseFlashcardResponse(text);
+      return flashcards;
+    } catch (error) {
+      this.logger.error('Error generating flashcards:', error);
+      throw new Error('Failed to generate flashcards');
+    }
+  }
+
   private buildAnalysisPrompt(pdfText: string, categoryList: string): string {
     return `
       You are an expert course designer. Analyze the following PDF content and create a structured course outline.
@@ -148,5 +164,56 @@ export class GeminiService {
         },
       ],
     };
+  }
+
+  private parseFlashcardResponse(response: string): Array<{front_text: string, back_text: string}> {
+    try {
+      // Extract JSON from the response (in case there's extra text)
+      const jsonMatch = response.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        // Try to find JSON object with markdown
+        const jsonObjectMatch = response.match(/```json([\s\S]*?)```/);
+        if (jsonObjectMatch) {
+          const flashcards = JSON.parse(jsonObjectMatch[1]);
+          return Array.isArray(flashcards) ? flashcards : [];
+        }
+        throw new Error('No valid JSON array found in AI response');
+      }
+
+      const flashcards = JSON.parse(jsonMatch[0]);
+      
+      // Validate that it's an array of objects with front_text and back_text
+      if (!Array.isArray(flashcards)) {
+        throw new Error('Response is not an array');
+      }
+
+      // Validate each flashcard has required fields
+      const validFlashcards = flashcards.filter(card => 
+        card && typeof card.front_text === 'string' && typeof card.back_text === 'string'
+      );
+
+      return validFlashcards;
+    } catch (error) {
+      this.logger.error('Error parsing flashcard response:', error);
+      // Return fallback flashcards
+      return this.getFallbackFlashcards();
+    }
+  }
+
+  private getFallbackFlashcards(): Array<{front_text: string, back_text: string}> {
+    return [
+      {
+        front_text: "What is the main topic?",
+        back_text: "The main topic is the primary subject being discussed."
+      },
+      {
+        front_text: "What are the key concepts?",
+        back_text: "Key concepts are the fundamental ideas and principles."
+      },
+      {
+        front_text: "What is the definition?",
+        back_text: "A definition explains the meaning of a term or concept."
+      }
+    ];
   }
 }

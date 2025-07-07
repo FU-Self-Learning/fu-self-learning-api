@@ -1,0 +1,81 @@
+### Test Flashcard API
+
+### 1. Tạo flashcard thủ công cho lesson
+POST http://localhost:4000/api/v1/flashcards
+Content-Type: application/json
+
+{
+  "lessonId": 1,
+  "front_text": "What is JavaScript?",
+  "back_text": "A programming language used for web development",
+  "is_auto_generated": false,
+  "generation_source": "manual"
+}
+
+### 2. Tạo flashcard thủ công cho topic
+POST http://localhost:4000/api/v1/flashcards
+Content-Type: application/json
+
+{
+  "topicId": 1,
+  "front_text": "What is a variable?",
+  "back_text": "A container for storing data values",
+  "is_auto_generated": false,
+  "generation_source": "manual"
+}
+
+### 3. Auto-generate flashcards từ lesson
+POST http://localhost:4000/api/v1/flashcards/generate
+Content-Type: application/json
+
+{
+  "source": "lesson",
+  "sourceId": 1,
+  "prompt": "Generate flashcards focusing on key concepts and definitions"
+}
+
+### 4. Auto-generate flashcards từ topic
+POST http://localhost:4000/api/v1/flashcards/generate
+Content-Type: application/json
+
+{
+  "source": "topic",
+  "sourceId": 1,
+  "prompt": "Generate flashcards focusing on important facts and concepts"
+}
+
+### 5. Auto-generate flashcards từ course
+POST http://localhost:4000/api/v1/flashcards/generate
+Content-Type: application/json
+
+{
+  "source": "course",
+  "sourceId": 14
+}
+
+### 6. Lấy tất cả flashcards
+GET http://localhost:4000/api/v1/flashcards
+
+### 7. Lấy flashcard theo ID
+GET http://localhost:4000/api/v1/flashcards/4
+
+### 8. Lấy flashcards theo topic
+GET http://localhost:4000/api/v1/flashcards/topic/1
+
+### 9. Lấy flashcards theo lesson
+GET http://localhost:4000/api/v1/flashcards/lesson/1
+
+### 9.1. Lấy flashcards theo course
+GET http://localhost:4000/api/v1/flashcards/course/14
+
+### 10. Cập nhật flashcard
+PUT http://localhost:4000/api/v1/flashcards/1
+Content-Type: application/json
+
+{
+  "front_text": "Updated question",
+  "back_text": "Updated answer"
+}
+
+### 11. Xóa flashcard
+DELETE http://localhost:4000/api/v1/flashcards/1 

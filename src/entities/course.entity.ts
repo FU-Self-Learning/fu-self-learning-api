@@ -13,6 +13,7 @@ import { User } from './user.entity';
 import { Topic } from './topic.entity';
 import { CommentCourse } from './comment-course.entity';
 import { Category } from './category.entity';
+import { Flashcard } from './flashcard.entity';
 
 @Entity('courses')
 export class Course {
@@ -49,6 +50,9 @@ export class Course {
   @ManyToMany(() => Category, (category) => category.courses)
   @JoinTable()
   categories: Category[];
+
+  @OneToMany(() => Flashcard, (flashcard) => flashcard.course)
+  flashcards: Flashcard[];
 
   @CreateDateColumn()
   createdAt: Date;

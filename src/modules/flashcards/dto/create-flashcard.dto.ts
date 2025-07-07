@@ -1,8 +1,13 @@
-import { IsString, IsNotEmpty, IsInt } from 'class-validator';
+import { IsString, IsNotEmpty, IsInt, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateFlashcardDto {
   @IsInt()
-  topicId: number;
+  @IsOptional()
+  topicId?: number;
+
+  @IsInt()
+  @IsOptional()
+  lessonId?: number;
 
   @IsString()
   @IsNotEmpty()
@@ -11,4 +16,12 @@ export class CreateFlashcardDto {
   @IsString()
   @IsNotEmpty()
   back_text: string;
+
+  @IsBoolean()
+  @IsOptional()
+  is_auto_generated?: boolean;
+
+  @IsString()
+  @IsOptional()
+  generation_source?: string;
 }

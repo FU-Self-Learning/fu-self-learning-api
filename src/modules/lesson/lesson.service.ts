@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Lesson } from '../../entities/lesson.entity';
 import { CreateLessonDto } from './dto/request/create-lesson.dto';
 import { UpdateLessonDto } from './dto/request/update-lesson.dto';
@@ -79,6 +79,19 @@ export class LessonService {
     }
 
     return plainToInstance(ViewLessonDto, lesson, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  async findAllByCourse(courseId: number): Promise<ViewLessonDto[]> {
+    const topics = await this.topicService.findAllByCourse(courseId);
+    const topicIds = topics.map((topic) => topic.id);
+    const lessons = await this.lessonRepository.find({
+      where: { topic: { id: In(topicIds) } },
+      relations: ['topic'],
+    });
+
+    return plainToInstance(ViewLessonDto, lessons, {
       excludeExtraneousValues: true,
     });
   }

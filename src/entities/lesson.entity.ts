@@ -3,10 +3,12 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Topic } from './topic.entity';
+import { Flashcard } from './flashcard.entity';
 
 @Entity('lessons')
 export class Lesson {
@@ -15,6 +17,9 @@ export class Lesson {
 
   @ManyToOne(() => Topic, (topic) => topic.lessons)
   topic: Topic;
+
+  @OneToMany(() => Flashcard, (flashcard) => flashcard.lesson)
+  flashcards: Flashcard[];
 
   @Column()
   title: string;

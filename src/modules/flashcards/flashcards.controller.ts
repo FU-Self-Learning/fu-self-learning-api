@@ -11,6 +11,7 @@ import {
 import { FlashcardsService } from './flashcards.service';
 import { CreateFlashcardDto } from './dto/create-flashcard.dto';
 import { UpdateFlashcardDto } from './dto/update-flashcard.dto';
+import { GenerateFlashcardDto } from './dto/generate-flashcard.dto';
 
 @Controller('flashcards')
 export class FlashcardsController {
@@ -19,6 +20,11 @@ export class FlashcardsController {
   @Post()
   create(@Body() dto: CreateFlashcardDto) {
     return this.flashcardsService.create(dto);
+  }
+
+  @Post('generate')
+  generateFlashcards(@Body() dto: GenerateFlashcardDto) {
+    return this.flashcardsService.generateFlashcards(dto);
   }
 
   @Get()
@@ -34,6 +40,16 @@ export class FlashcardsController {
   @Get('topic/:topicId')
   findByTopic(@Param('topicId', ParseIntPipe) topicId: number) {
     return this.flashcardsService.findByTopic(topicId);
+  }
+
+  @Get('lesson/:lessonId')
+  findByLesson(@Param('lessonId', ParseIntPipe) lessonId: number) {
+    return this.flashcardsService.findByLesson(lessonId);
+  }
+
+  @Get('course/:courseId')
+  findByCourse(@Param('courseId', ParseIntPipe) courseId: number) {
+    return this.flashcardsService.findByCourse(courseId);
   }
 
   @Put(':id')
