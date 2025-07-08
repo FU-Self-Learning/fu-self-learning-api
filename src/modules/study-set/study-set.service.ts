@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { StudySet } from '../../entities/study-set.entity';
 import { User } from '../../entities/user.entity';
 import { Flashcard } from '../../entities/flashcard.entity';
-import { Course } from '../../entities/course.entity';
 import { CreateStudySetDto } from './dto/create-study-set.dto';
-import { FlashcardsService } from '../flashcards/flashcards.service';
 import { UpdateStudySetDto } from './dto/update-study-set.dto';
+import { ResponseStudySetDto } from './dto/response-study-set.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class StudySetService {
@@ -18,9 +22,6 @@ export class StudySetService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Flashcard)
     private readonly flashcardRepo: Repository<Flashcard>,
-    @InjectRepository(Course)
-    private readonly courseRepo: Repository<Course>,
-    private readonly flashcardsService: FlashcardsService,
   ) {}
 
   async create(userId: number, dto: CreateStudySetDto): Promise<StudySet> {
@@ -44,7 +45,9 @@ export class StudySetService {
       const allFlashcards = await this.flashcardRepo.find();
       flashcards = this.shuffleArray(allFlashcards).slice(0, dto.limit || 20);
     } else if (dto.type === 'custom') {
-      flashcards = await this.flashcardRepo.find({ where: { id: In(dto.flashcardIds || []) } });
+      flashcards = await this.flashcardRepo.find({
+        where: { id: In(dto.flashcardIds || []) },
+      });
     } else {
       throw new BadRequestException('Invalid study set type');
     }
@@ -60,11 +63,14 @@ export class StudySetService {
     return this.studySetRepo.save(studySet);
   }
 
-  async findAllByUser(userId: number): Promise<StudySet[]> {
-    return this.studySetRepo.find({
+  async findAllByUser(userId: number): Promise<ResponseStudySetDto[]> {
+    const studySets = await this.studySetRepo.find({
       where: { user: { id: userId } },
-      relations: ['flashcards'],
+      relations: ['flashcards', 'user'],
       order: { createdAt: 'DESC' },
+    });
+    return plainToInstance(ResponseStudySetDto, studySets, {
+      excludeExtraneousValues: true,
     });
   }
 
@@ -77,7 +83,11 @@ export class StudySetService {
     return studySet;
   }
 
-  async update(id: number, userId: number, dto: UpdateStudySetDto): Promise<StudySet> {
+  async update(
+    id: number,
+    userId: number,
+    dto: UpdateStudySetDto,
+  ): Promise<StudySet> {
     const studySet = await this.findOneById(id, userId);
     Object.assign(studySet, dto);
     return this.studySetRepo.save(studySet);
@@ -94,4 +104,4 @@ export class StudySetService {
       .sort((a, b) => a[0] - b[0])
       .map((a) => a[1]);
   }
-} 
+}
