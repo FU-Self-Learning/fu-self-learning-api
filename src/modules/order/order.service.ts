@@ -6,6 +6,7 @@ import { OrderStatus } from '../../common/enums/order-status.enum';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
 import { Logger } from '@nestjs/common';
+import { EnrollmentService } from '../enrollment/enrollment.service';
 
 @Injectable()
 export class OrderService {
@@ -17,6 +18,7 @@ export class OrderService {
     @InjectRepository(Course)
     private readonly courseRepository: Repository<Course>,
     private readonly dataSource: DataSource,
+    private readonly enrollmentService: EnrollmentService,
   ) {}
 
   async createOrder(user: User, courseId: number, amount: number): Promise<{ order: Order, orderCode: number }> {
@@ -108,11 +110,27 @@ export class OrderService {
   }
 
   async updateOrderStatusByPayOsOrderId(payOsOrderId: string, status: OrderStatus): Promise<Order> {
-    const order = await this.orderRepository.findOne({ where: { payOsOrderId } });
+    const order = await this.orderRepository.findOne({ 
+      where: { payOsOrderId },
+      relations: ['user', 'course']
+    });
     if (!order) throw new NotFoundException('Order not found by payOsOrderId');
     
     order.status = status;
     const updatedOrder = await this.orderRepository.save(order);
+    
+    if (status === OrderStatus.PAID) {
+      try {
+        if (order.user && order.course) {
+          await this.enrollmentService.enrollUser(order.user, order.course);
+          this.logger.log(`User ${order.user.id} auto-enrolled in course ${order.course.id} after payment`);
+        } else {
+          this.logger.warn(`Missing user or course data for order ${order.id}. User: ${!!order.user}, Course: ${!!order.course}`);
+        }
+      } catch (error) {
+        this.logger.error(`Failed to auto-enroll user ${order.user?.id} in course ${order.course?.id}: ${error.message}`);
+      }
+    }
     
     this.logger.log(`Order with PayOS ID ${payOsOrderId} status updated to: ${status}`);
     return updatedOrder;

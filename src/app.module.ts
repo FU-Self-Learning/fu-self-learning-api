@@ -24,6 +24,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { InstructorRequestModule } from './modules/instructor-request/instructor-request.module';
 import { OrderModule } from './modules/order/order.module';
 import { StudySetModule } from './modules/study-set/study-set.module';
+import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { StudySetModule } from './modules/study-set/study-set.module';
     InstructorRequestModule,
     OrderModule,
     StudySetModule,
+    EnrollmentModule,
   ],
   controllers: [AppController],
   providers: [
