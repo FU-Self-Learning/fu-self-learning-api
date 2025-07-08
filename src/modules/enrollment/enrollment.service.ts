@@ -5,6 +5,7 @@ import { Enrollment } from '../../entities/enrollment.entity';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
 import { Logger } from '@nestjs/common';
+import { CreateEnrollmentDto, UpdateEnrollmentDto } from './dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -28,20 +29,15 @@ export class EnrollmentService {
     });
 
     if (existingEnrollment) {
-      if (existingEnrollment.isActive) {
-        this.logger.warn(`User ${user.id} already enrolled in course ${course.id}`);
-        return existingEnrollment;
-      } else {
-        existingEnrollment.isActive = true;
-        return this.enrollmentRepository.save(existingEnrollment);
-      }
+      this.logger.warn(`User ${user.id} already enrolled in course ${course.id}`);
+      return existingEnrollment;
     }
 
     const enrollment = this.enrollmentRepository.create({
       user,
       course,
       progress: 0,
-      isActive: true,
+      enrollAt: new Date(),
     });
 
     const savedEnrollment = await this.enrollmentRepository.save(enrollment);
@@ -53,8 +49,7 @@ export class EnrollmentService {
   async getUserEnrollments(userId: number): Promise<Enrollment[]> {
     return this.enrollmentRepository.find({
       where: { 
-        user: { id: userId },
-        isActive: true 
+        user: { id: userId }
       },
       relations: ['course', 'course.instructor'],
       order: { enrolledAt: 'DESC' }
@@ -64,8 +59,7 @@ export class EnrollmentService {
   async getCourseEnrollments(courseId: number): Promise<Enrollment[]> {
     return this.enrollmentRepository.find({
       where: { 
-        course: { id: courseId },
-        isActive: true 
+        course: { id: courseId }
       },
       relations: ['user'],
       order: { enrolledAt: 'DESC' }
@@ -77,8 +71,7 @@ export class EnrollmentService {
       const enrollment = await this.enrollmentRepository.findOne({
         where: { 
           user: { id: userId },
-          course: { id: courseId },
-          isActive: true
+          course: { id: courseId }
         },
         relations: ['course']
       });
@@ -109,8 +102,7 @@ export class EnrollmentService {
     const enrollment = await this.enrollmentRepository.findOne({
       where: { 
         user: { id: userId },
-        course: { id: courseId },
-        isActive: true
+        course: { id: courseId }
       }
     });
 
@@ -122,14 +114,12 @@ export class EnrollmentService {
       const [total, completed] = await Promise.all([
         this.enrollmentRepository.count({
           where: { 
-            course: { id: courseId },
-            isActive: true 
+            course: { id: courseId }
           }
         }),
         this.enrollmentRepository.count({
           where: { 
             course: { id: courseId },
-            isActive: true,
             progress: 100
           }
         })
@@ -155,8 +145,7 @@ export class EnrollmentService {
       const enrollment = await this.enrollmentRepository.findOne({
         where: { 
           user: { id: userId },
-          course: { id: courseId },
-          isActive: true
+          course: { id: courseId }
         }
       });
       return !!enrollment;
@@ -171,8 +160,7 @@ export class EnrollmentService {
       return await this.enrollmentRepository.findOne({
         where: { 
           user: { id: userId },
-          course: { id: courseId },
-          isActive: true
+          course: { id: courseId }
         },
         relations: ['course', 'user']
       });
@@ -180,5 +168,55 @@ export class EnrollmentService {
       this.logger.error(`Failed to get enrollment details for user ${userId}, course ${courseId}: ${error.message}`);
       return null;
     }
+  }
+
+  async updateEnrollment(id: number, updateData: UpdateEnrollmentDto): Promise<Enrollment> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: { id },
+      relations: ['user', 'course']
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found');
+    }
+
+    Object.assign(enrollment, updateData);
+    return this.enrollmentRepository.save(enrollment);
+  }
+
+  async deleteEnrollment(userId: number, courseId: number): Promise<boolean> {
+    try {
+      const result = await this.enrollmentRepository.delete({
+        user: { id: userId },
+        course: { id: courseId }
+      });
+      return !!(result.affected && result.affected > 0);
+    } catch (error) {
+      this.logger.error(`Failed to delete enrollment for user ${userId}, course ${courseId}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  async getEnrollmentById(id: number): Promise<Enrollment | null> {
+    return this.enrollmentRepository.findOne({
+      where: { id },
+      relations: ['user', 'course']
+    });
+  }
+
+  async setCertificateUrl(userId: number, courseId: number, certificateUrl: string): Promise<Enrollment> {
+    const enrollment = await this.enrollmentRepository.findOne({
+      where: { 
+        user: { id: userId },
+        course: { id: courseId }
+      }
+    });
+
+    if (!enrollment) {
+      throw new NotFoundException('Enrollment not found');
+    }
+
+    enrollment.certificateUrl = certificateUrl;
+    return this.enrollmentRepository.save(enrollment);
   }
 }

@@ -1,15 +1,8 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Req, Patch, Body, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe, UseGuards, Req, Patch, Body, ValidationPipe, Post, Delete } from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { JwtAuthGuard } from '../../config/jwt/jwt-auth.guard';
 import { User } from '../../entities/user.entity';
-import { IsNumber, Min, Max } from 'class-validator';
-
-class UpdateProgressDto {
-  @IsNumber()
-  @Min(0)
-  @Max(100)
-  progress: number;
-}
+import { UpdateProgressDto, UpdateEnrollmentDto } from './dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -39,8 +32,7 @@ export class EnrollmentController {
       progress: enrollment.progress,
       enrolledAt: enrollment.enrolledAt,
       completedAt: enrollment.completedAt,
-      isCompleted: enrollment.progress === 100,
-      isActive: enrollment.isActive
+      isCompleted: enrollment.progress === 100
     }));
   }
 
@@ -88,8 +80,7 @@ export class EnrollmentController {
         id: enrollment.id,
         progress: enrollment.progress,
         enrolledAt: enrollment.enrolledAt,
-        completedAt: enrollment.completedAt,
-        isActive: enrollment.isActive
+        completedAt: enrollment.completedAt
       }
     };
   }
@@ -178,5 +169,65 @@ export class EnrollmentController {
         isCompleted: enrollment.progress === 100
       }))
     };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updateEnrollment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) updateEnrollmentDto: UpdateEnrollmentDto
+  ) {
+    return this.enrollmentService.updateEnrollment(id, updateEnrollmentDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('course/:courseId')
+  async deleteEnrollment(
+    @Req() req: any,
+    @Param('courseId', ParseIntPipe) courseId: number
+  ) {
+    const user = req.user as User;
+    const deleted = await this.enrollmentService.deleteEnrollment(user.id, courseId);
+    return { success: deleted, message: deleted ? 'Enrollment deleted successfully' : 'Enrollment not found' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getEnrollmentById(@Param('id', ParseIntPipe) id: number) {
+    const enrollment = await this.enrollmentService.getEnrollmentById(id);
+    if (!enrollment) {
+      return { found: false, message: 'Enrollment not found' };
+    }
+    return {
+      found: true,
+      enrollment: {
+        id: enrollment.id,
+        progress: enrollment.progress,
+        enrolledAt: enrollment.enrolledAt,
+        completedAt: enrollment.completedAt,
+        certificateUrl: enrollment.certificateUrl,
+        user: {
+          id: enrollment.user.id,
+          username: enrollment.user.username,
+          email: enrollment.user.email
+        },
+        course: {
+          id: enrollment.course.id,
+          title: enrollment.course.title,
+          description: enrollment.course.description
+        }
+      }
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('course/:courseId/certificate')
+  async setCertificate(
+    @Req() req: any,
+    @Param('courseId', ParseIntPipe) courseId: number,
+    @Body('certificateUrl') certificateUrl: string
+  ) {
+    const user = req.user as User;
+    return this.enrollmentService.setCertificateUrl(user.id, courseId, certificateUrl);
   }
 }

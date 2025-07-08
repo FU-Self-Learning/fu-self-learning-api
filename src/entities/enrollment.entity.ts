@@ -28,8 +28,8 @@ export class Enrollment {
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
   progress: number; 
 
-  @Column({ default: true })
-  isActive: boolean;
+  @Column({nullable: true})
+  enrollAt: Date;
 
   @Column({ nullable: true })
   completedAt: Date;
