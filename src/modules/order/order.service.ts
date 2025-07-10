@@ -1,12 +1,13 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { Order } from '../../entities/order.entity';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
-import { Logger } from '@nestjs/common';
 import { EnrollmentService } from '../enrollment/enrollment.service';
+import { PayOsService } from './payos.service';
+import { CreateOrderResponseDto, UserOrdersResponseDto, WebhookProcessResultDto } from './dto';
 
 @Injectable()
 export class OrderService {
@@ -19,6 +20,7 @@ export class OrderService {
     private readonly courseRepository: Repository<Course>,
     private readonly dataSource: DataSource,
     private readonly enrollmentService: EnrollmentService,
+    private readonly payOsService: PayOsService,
   ) {}
 
   async createOrder(user: User, courseId: number, amount: number): Promise<{ order: Order, orderCode: number }> {
@@ -141,5 +143,71 @@ export class OrderService {
       where: { payOsOrderId },
       relations: ['course', 'user']
     });
+  }
+
+  async createOrderWithPayment(user: User, courseId: number, amount: number): Promise<CreateOrderResponseDto> {
+    try {
+      const { order, orderCode } = await this.createOrder(user, courseId, amount);
+      const payOs = await this.payOsService.createPayment(amount, orderCode);
+      await this.updatePayOsOrderId(order.id, payOs.payOsOrderId);
+      
+      order.payOsOrderId = payOs.payOsOrderId;
+      
+      this.logger.log(`Payment created for user ${user.id}, order ${order.id}`);
+      return CreateOrderResponseDto.success(order, payOs.payUrl, payOs.payOsOrderId);
+    } catch (error) {
+      this.logger.error(`Failed to create order for user ${user.id}: ${error.message}`);
+      return CreateOrderResponseDto.error(error.message, error.name);
+    }
+  }
+
+  async getUserOrdersFormatted(userId: number): Promise<UserOrdersResponseDto> {
+    try {
+      const orders = await this.getUserOrders(userId);
+      return UserOrdersResponseDto.success(orders);
+    } catch (error) {
+      this.logger.error(`Failed to get user orders for user ${userId}: ${error.message}`);
+      return UserOrdersResponseDto.error('Failed to retrieve orders', error.message);
+    }
+  }
+
+  async processWebhook(body: any, payos: any): Promise<WebhookProcessResultDto> {
+    try {
+      this.logger.log('Processing webhook with body:', JSON.stringify(body));
+      
+      const webhookDataVerified = payos.verifyPaymentWebhookData(body);
+      this.logger.log('Verified webhook data:', JSON.stringify(webhookDataVerified));
+
+      if (!webhookDataVerified) {
+        return WebhookProcessResultDto.error(403, 'Invalid signature - webhook data verification failed');
+      }
+
+      const orderCode = webhookDataVerified.orderCode?.toString();
+      const code = webhookDataVerified.code;
+      
+      if (!orderCode) {
+        return WebhookProcessResultDto.error(400, 'Missing orderCode in webhook data');
+      }
+
+      this.logger.log('Webhook received orderCode:', orderCode);
+
+      const orderInDb = await this.getOrderByPayOsOrderId(orderCode);
+      this.logger.log('Order in DB:', orderInDb ? JSON.stringify(orderInDb) : 'Not found');
+
+      if (!orderInDb) {
+        return WebhookProcessResultDto.error(404, `Order not found for orderCode: ${orderCode}`);
+      }
+
+      if (code === '00') {
+        await this.updateOrderStatusByPayOsOrderId(orderCode, OrderStatus.PAID);
+        return WebhookProcessResultDto.success(200, `Order ${orderCode} marked as PAID successfully`);
+      } else {
+        await this.updateOrderStatusByPayOsOrderId(orderCode, OrderStatus.FAILED);
+        return WebhookProcessResultDto.success(200, `Order ${orderCode} marked as FAILED`);
+      }
+    } catch (error) {
+      this.logger.error('Error in processWebhook:', error.message);
+      return WebhookProcessResultDto.error(500, 'Internal server error during webhook processing', error.message);
+    }
   }
 }
