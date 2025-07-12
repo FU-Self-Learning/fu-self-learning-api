@@ -1,6 +1,7 @@
 import { Injectable, ConflictException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { plainToClass } from 'class-transformer';
 import { Enrollment } from '../../entities/enrollment.entity';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
@@ -230,7 +231,9 @@ export class EnrollmentService {
 
   async getMyCoursesFormatted(userId: number): Promise<EnrollmentDto[]> {
     const enrollments = await this.getUserEnrollments(userId);
-    return enrollments.map(enrollment => new EnrollmentDto(enrollment));
+    return enrollments.map(enrollment => 
+      plainToClass(EnrollmentDto, enrollment, { excludeExtraneousValues: true })
+    );
   }
 
   async getMyCoursesSummary(userId: number): Promise<EnrollmentSummaryResponseDto> {

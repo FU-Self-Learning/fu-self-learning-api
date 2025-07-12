@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseIntPipe, UseGuards, Patch, Body, Validatio
 import { EnrollmentService } from './enrollment.service';
 import { JwtAuthGuard } from '../../config/jwt/jwt-auth.guard';
 import { User } from '../../entities/user.entity';
-import { UpdateProgressDto } from './dto';
+import { UpdateEnrollmentDto } from './dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -29,12 +29,15 @@ export class EnrollmentController {
   async updateEnrollment(
     @Req() req: any,
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Body(ValidationPipe) updateProgressDto: UpdateProgressDto,
+    @Body(ValidationPipe) updateEnrollmentDto: UpdateEnrollmentDto,
   ) {
+    if (updateEnrollmentDto.progress === undefined) {
+      throw new Error('Progress is required');
+    }
     return this.enrollmentService.updateProgress(
       req.user.id,
       courseId,
-      updateProgressDto.progress
+      updateEnrollmentDto.progress
     );
   }
 
