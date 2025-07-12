@@ -63,7 +63,7 @@ export class UsersController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<UserInfoDto> {
     return await this.usersService.changePassword(
-      req.user.userId,
+      req.user.id,
       changePasswordDto,
     );
   }
