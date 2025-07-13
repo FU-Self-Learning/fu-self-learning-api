@@ -6,9 +6,13 @@ import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { OrderWebhookController } from './order-webhook.controller';
 import { PayOsService } from './payos.service';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, Course])],
+  imports: [
+    TypeOrmModule.forFeature([Order, Course]),
+    EnrollmentModule
+  ],
   controllers: [OrderController, OrderWebhookController],
   providers: [OrderService, PayOsService],
   exports: [OrderService],

@@ -1,4 +1,4 @@
-import { IsNumber, IsPositive, Min } from 'class-validator';
+import { IsNumber, IsPositive } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateOrderDto {
@@ -6,11 +6,4 @@ export class CreateOrderDto {
   @IsPositive()
   @Type(() => Number)
   amount: number;
-}
-
-export class CreateOrderParamsDto {
-  @IsNumber()
-  @IsPositive()
-  @Type(() => Number)
-  courseId: number;
 }
