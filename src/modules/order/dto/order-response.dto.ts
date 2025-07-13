@@ -1,118 +1,135 @@
-import { Expose, Transform, Type, plainToClass } from 'class-transformer';
+import { Expose, Type, Transform } from 'class-transformer';
+import { IsBoolean, IsOptional, IsString, IsNumber, IsArray, ValidateNested } from 'class-validator';
 
 export class OrderCourseDto {
   @Expose()
+  @IsNumber()
   id: number;
 
   @Expose()
+  @IsString()
   title: string;
 
   @Expose()
+  @IsString()
   description: string;
 
   @Expose()
+  @IsString()
   imageUrl: string;
 
   @Expose()
+  @IsNumber()
   price: number;
 }
 
 export class OrderDto {
   @Expose()
+  @IsNumber()
   id: number;
 
   @Expose()
+  @IsNumber()
   amount: number;
 
   @Expose()
+  @IsString()
   status: string;
 
   @Expose()
+  @IsString()
   payOsOrderId: string;
 
   @Expose()
+  @Type(() => Date)
   createdAt: Date;
 
   @Expose()
+  @Type(() => Date)
   updatedAt: Date;
 
   @Expose()
   @Type(() => OrderCourseDto)
+  @ValidateNested()
   course: OrderCourseDto;
 }
 
 export class CreateOrderResponseDto {
+  @Expose()
+  @IsBoolean()
   success: boolean;
+
+  @Expose()
+  @IsOptional()
+  @Type(() => OrderDto)
+  @ValidateNested()
   order?: OrderDto;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   payUrl?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   payOsOrderId?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   message?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   error?: string;
-
-  static success(order: any, payUrl: string, payOsOrderId: string): CreateOrderResponseDto {
-    const response = new CreateOrderResponseDto();
-    response.success = true;
-    response.order = plainToClass(OrderDto, order, { excludeExtraneousValues: true });
-    response.payUrl = payUrl;
-    response.payOsOrderId = payOsOrderId;
-    return response;
-  }
-
-  static error(message: string, error?: string): CreateOrderResponseDto {
-    const response = new CreateOrderResponseDto();
-    response.success = false;
-    response.message = message;
-    response.error = error;
-    return response;
-  }
 }
 
 export class UserOrdersResponseDto {
+  @Expose()
+  @IsBoolean()
   success: boolean;
+
+  @Expose()
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ obj }) => obj.orders?.length || 0)
   count?: number;
+
+  @Expose()
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => OrderDto)
   orders?: OrderDto[];
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   message?: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   error?: string;
-
-  static success(orders: any[]): UserOrdersResponseDto {
-    const response = new UserOrdersResponseDto();
-    response.success = true;
-    response.count = orders.length;
-    response.orders = orders.map(order => 
-      plainToClass(OrderDto, order, { excludeExtraneousValues: true })
-    );
-    return response;
-  }
-
-  static error(message: string, error?: string): UserOrdersResponseDto {
-    const response = new UserOrdersResponseDto();
-    response.success = false;
-    response.message = message;
-    response.error = error;
-    return response;
-  }
 }
 
 export class WebhookProcessResultDto {
+  @Expose()
+  @IsBoolean()
   success: boolean;
+
+  @Expose()
+  @IsNumber()
   statusCode: number;
+
+  @Expose()
+  @IsString()
   message: string;
+
+  @Expose()
+  @IsOptional()
+  @IsString()
   error?: string;
-
-  static success(statusCode: number, message: string): WebhookProcessResultDto {
-    const result = new WebhookProcessResultDto();
-    result.success = true;
-    result.statusCode = statusCode;
-    result.message = message;
-    return result;
-  }
-
-  static error(statusCode: number, message: string, error?: string): WebhookProcessResultDto {
-    const result = new WebhookProcessResultDto();
-    result.success = false;
-    result.statusCode = statusCode;
-    result.message = message;
-    result.error = error;
-    return result;
-  }
 }

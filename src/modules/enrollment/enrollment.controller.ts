@@ -2,7 +2,7 @@ import { Controller, Get, Param, ParseIntPipe, UseGuards, Patch, Body, Validatio
 import { EnrollmentService } from './enrollment.service';
 import { JwtAuthGuard } from '../../config/jwt/jwt-auth.guard';
 import { User } from '../../entities/user.entity';
-import { UpdateEnrollmentDto } from './dto';
+import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 
 @Controller('enrollments')
 export class EnrollmentController {
@@ -53,7 +53,7 @@ export class EnrollmentController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getEnrollmentById(@Param('id', ParseIntPipe) id: number) {
-    return this.enrollmentService.getEnrollmentByIdFormatted(id);
+    return this.enrollmentService.getEnrollmentById(id);
   }
 
   @UseGuards(JwtAuthGuard)

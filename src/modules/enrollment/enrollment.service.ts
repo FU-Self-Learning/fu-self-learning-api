@@ -1,20 +1,12 @@
-import { Injectable, ConflictException, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { plainToClass } from 'class-transformer';
 import { Enrollment } from '../../entities/enrollment.entity';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
 import { 
-  CreateEnrollmentDto, 
-  UpdateEnrollmentDto, 
-  EnrollmentDto,
-  EnrollmentSummaryResponseDto,
-  FilteredCoursesResponseDto,
-  EnrollmentDetailsResponseDto,
-  EnrollmentByIdResponseDto,
-  DeleteEnrollmentResponseDto
-} from './dto';
+  UpdateEnrollmentDto
+} from './dto/update-enrollment.dto';
 
 @Injectable()
 export class EnrollmentService {
@@ -118,37 +110,6 @@ export class EnrollmentService {
     return !!enrollment;
   }
 
-  async getEnrollmentStats(courseId: number) {
-    try {
-      const [total, completed] = await Promise.all([
-        this.enrollmentRepository.count({
-          where: { 
-            course: { id: courseId }
-          }
-        }),
-        this.enrollmentRepository.count({
-          where: { 
-            course: { id: courseId },
-            progress: 100
-          }
-        })
-      ]);
-
-      const completionRate = total > 0 ? Math.round((completed / total) * 100 * 100) / 100 : 0;
-
-      return {
-        courseId,
-        totalEnrollments: total,
-        completedEnrollments: completed,
-        completionRate,
-        inProgressEnrollments: total - completed
-      };
-    } catch (error) {
-      this.logger.error(`Failed to get enrollment stats for course ${courseId}: ${error.message}`);
-      throw error;
-    }
-  }
-
   async hasAccessToCourse(userId: number, courseId: number): Promise<boolean> {
     try {
       const enrollment = await this.enrollmentRepository.findOne({
@@ -227,56 +188,5 @@ export class EnrollmentService {
 
     enrollment.certificateUrl = certificateUrl;
     return this.enrollmentRepository.save(enrollment);
-  }
-
-  async getMyCoursesFormatted(userId: number): Promise<EnrollmentDto[]> {
-    const enrollments = await this.getUserEnrollments(userId);
-    return enrollments.map(enrollment => 
-      plainToClass(EnrollmentDto, enrollment, { excludeExtraneousValues: true })
-    );
-  }
-
-  async getMyCoursesSummary(userId: number): Promise<EnrollmentSummaryResponseDto> {
-    const enrollments = await this.getUserEnrollments(userId);
-    return new EnrollmentSummaryResponseDto(enrollments);
-  }
-
-  async getMyCoursesFiltered(userId: number, status: string): Promise<FilteredCoursesResponseDto> {
-    const enrollments = await this.getUserEnrollments(userId);
-    
-    let filteredEnrollments = enrollments;
-    
-    switch (status.toLowerCase()) {
-      case 'completed':
-        filteredEnrollments = enrollments.filter(e => e.progress === 100);
-        break;
-      case 'in-progress':
-        filteredEnrollments = enrollments.filter(e => e.progress > 0 && e.progress < 100);
-        break;
-      case 'not-started':
-        filteredEnrollments = enrollments.filter(e => e.progress === 0);
-        break;
-      case 'all':
-      default:
-        filteredEnrollments = enrollments;
-        break;
-    }
-    
-    return new FilteredCoursesResponseDto(status, filteredEnrollments);
-  }
-
-  async getEnrollmentDetailsFormatted(userId: number, courseId: number): Promise<EnrollmentDetailsResponseDto> {
-    const enrollment = await this.getEnrollmentDetails(userId, courseId);
-    return new EnrollmentDetailsResponseDto(enrollment);
-  }
-
-  async getEnrollmentByIdFormatted(id: number): Promise<EnrollmentByIdResponseDto> {
-    const enrollment = await this.getEnrollmentById(id);
-    return new EnrollmentByIdResponseDto(enrollment);
-  }
-
-  async deleteEnrollmentFormatted(userId: number, courseId: number): Promise<DeleteEnrollmentResponseDto> {
-    const deleted = await this.deleteEnrollment(userId, courseId);
-    return new DeleteEnrollmentResponseDto(deleted);
   }
 }

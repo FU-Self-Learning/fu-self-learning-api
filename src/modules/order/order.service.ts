@@ -1,13 +1,14 @@
 import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
+import { plainToClass } from 'class-transformer';
 import { Order } from '../../entities/order.entity';
 import { OrderStatus } from '../../common/enums/order-status.enum';
 import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { PayOsService } from './payos.service';
-import { CreateOrderResponseDto, UserOrdersResponseDto, WebhookProcessResultDto } from './dto';
+import { CreateOrderResponseDto, UserOrdersResponseDto, WebhookProcessResultDto, OrderDto } from './dto/order-response.dto';
 
 @Injectable()
 export class OrderService {
@@ -154,20 +155,48 @@ export class OrderService {
       order.payOsOrderId = payOs.payOsOrderId;
       
       this.logger.log(`Payment created for user ${user.id}, order ${order.id}`);
-      return CreateOrderResponseDto.success(order, payOs.payUrl, payOs.payOsOrderId);
+      
+      const response = new CreateOrderResponseDto();
+      response.success = true;
+      response.order = plainToClass(OrderDto, order, { excludeExtraneousValues: true });
+      response.payUrl = payOs.payUrl;
+      response.payOsOrderId = payOs.payOsOrderId;
+      
+      return response;
     } catch (error) {
       this.logger.error(`Failed to create order for user ${user.id}: ${error.message}`);
-      return CreateOrderResponseDto.error(error.message, error.name);
+      
+      const response = new CreateOrderResponseDto();
+      response.success = false;
+      response.message = error.message;
+      response.error = error.name;
+      
+      return response;
     }
   }
 
   async getUserOrdersFormatted(userId: number): Promise<UserOrdersResponseDto> {
     try {
       const orders = await this.getUserOrders(userId);
-      return UserOrdersResponseDto.success(orders);
+      const transformedOrders = orders.map(order => 
+        plainToClass(OrderDto, order, { excludeExtraneousValues: true })
+      );
+      
+      const response = new UserOrdersResponseDto();
+      response.success = true;
+      response.orders = transformedOrders;
+      response.count = transformedOrders.length;
+      
+      return response;
     } catch (error) {
       this.logger.error(`Failed to get user orders for user ${userId}: ${error.message}`);
-      return UserOrdersResponseDto.error('Failed to retrieve orders', error.message);
+      
+      const response = new UserOrdersResponseDto();
+      response.success = false;
+      response.message = 'Failed to retrieve orders';
+      response.error = error.message;
+      
+      return response;
     }
   }
 
@@ -179,14 +208,22 @@ export class OrderService {
       this.logger.log('Verified webhook data:', JSON.stringify(webhookDataVerified));
 
       if (!webhookDataVerified) {
-        return WebhookProcessResultDto.error(403, 'Invalid signature - webhook data verification failed');
+        const response = new WebhookProcessResultDto();
+        response.success = false;
+        response.statusCode = 403;
+        response.message = 'Invalid signature - webhook data verification failed';
+        return response;
       }
 
       const orderCode = webhookDataVerified.orderCode?.toString();
       const code = webhookDataVerified.code;
       
       if (!orderCode) {
-        return WebhookProcessResultDto.error(400, 'Missing orderCode in webhook data');
+        const response = new WebhookProcessResultDto();
+        response.success = false;
+        response.statusCode = 400;
+        response.message = 'Missing orderCode in webhook data';
+        return response;
       }
 
       this.logger.log('Webhook received orderCode:', orderCode);
@@ -195,19 +232,36 @@ export class OrderService {
       this.logger.log('Order in DB:', orderInDb ? JSON.stringify(orderInDb) : 'Not found');
 
       if (!orderInDb) {
-        return WebhookProcessResultDto.error(404, `Order not found for orderCode: ${orderCode}`);
+        const response = new WebhookProcessResultDto();
+        response.success = false;
+        response.statusCode = 404;
+        response.message = `Order not found for orderCode: ${orderCode}`;
+        return response;
       }
 
       if (code === '00') {
         await this.updateOrderStatusByPayOsOrderId(orderCode, OrderStatus.PAID);
-        return WebhookProcessResultDto.success(200, `Order ${orderCode} marked as PAID successfully`);
+        const response = new WebhookProcessResultDto();
+        response.success = true;
+        response.statusCode = 200;
+        response.message = `Order ${orderCode} marked as PAID successfully`;
+        return response;
       } else {
         await this.updateOrderStatusByPayOsOrderId(orderCode, OrderStatus.FAILED);
-        return WebhookProcessResultDto.success(200, `Order ${orderCode} marked as FAILED`);
+        const response = new WebhookProcessResultDto();
+        response.success = true;
+        response.statusCode = 200;
+        response.message = `Order ${orderCode} marked as FAILED`;
+        return response;
       }
     } catch (error) {
       this.logger.error('Error in processWebhook:', error.message);
-      return WebhookProcessResultDto.error(500, 'Internal server error during webhook processing', error.message);
+      const response = new WebhookProcessResultDto();
+      response.success = false;
+      response.statusCode = 500;
+      response.message = 'Internal server error during webhook processing';
+      response.error = error.message;
+      return response;
     }
   }
 }
