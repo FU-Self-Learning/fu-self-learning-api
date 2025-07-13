@@ -56,10 +56,26 @@ export class ChatGateway
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
-    @MessageBody() data: SendMessageDto,
+    @MessageBody() data: SendMessageDto | string,
     @ConnectedSocket() client: Socket,
   ) {
-    const message = await this.chatService.saveMessage(data);
+    let parsedData: SendMessageDto;
+    if (typeof data === 'string') {
+      try {
+        parsedData = JSON.parse(data) as SendMessageDto;
+      } catch (error) {
+        this.logger.error('Failed to parse message data:', error);
+        client.emit('error', { message: 'Invalid JSON format' });
+        return;
+      }
+    } else {
+      parsedData = data;
+    }
+
+    parsedData.senderUserId = Number(parsedData.senderUserId);
+    parsedData.receiverUserId = Number(parsedData.receiverUserId);
+
+    const message = await this.chatService.saveMessage(parsedData);
 
     client.emit('messageSent', message);
     const redisPub = this.redisService.getRedisPub();
@@ -68,12 +84,28 @@ export class ChatGateway
 
   @SubscribeMessage('loadMessages')
   async loadMessages(
-    @MessageBody() data: { senderUserId: number; receiverUserId: number },
+    @MessageBody() data: { senderUserId: number; receiverUserId: number } | string,
     @ConnectedSocket() client: Socket,
   ) {
+    let parsedData: { senderUserId: number; receiverUserId: number };
+    if (typeof data === 'string') {
+      try {
+        parsedData = JSON.parse(data);
+      } catch (error) {
+        this.logger.error('Failed to parse loadMessages data:', error);
+        client.emit('error', { message: 'Invalid JSON format' });
+        return;
+      }
+    } else {
+      parsedData = data;
+    }
+
+    parsedData.senderUserId = Number(parsedData.senderUserId);
+    parsedData.receiverUserId = Number(parsedData.receiverUserId);
+
     const messages = await this.chatService.loadMessages(
-      data.senderUserId,
-      data.receiverUserId,
+      parsedData.senderUserId,
+      parsedData.receiverUserId,
     );
 
     client.emit('messagesLoaded', messages);
