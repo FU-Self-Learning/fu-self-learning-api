@@ -7,6 +7,7 @@ import {
   ManyToOne,
   ManyToMany,
   JoinTable,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Flashcard } from './flashcard.entity';
@@ -31,8 +32,7 @@ export class StudySet {
   @ManyToOne(() => User, (user) => user.studySets)
   user: User;
 
-  @ManyToMany(() => Flashcard)
-  @JoinTable({ name: 'study_set_flashcards' })
+  @OneToMany(() => Flashcard, (flashcard) => flashcard.studySet, { cascade: true })
   flashcards: Flashcard[];
 
   @CreateDateColumn()

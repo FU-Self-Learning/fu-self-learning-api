@@ -1,11 +1,14 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, IsNumber, IsEnum } from 'class-validator';
-
-export enum StudySetType {
-  COURSE = 'course',
-  MULTI_COURSE = 'multi-course',
-  RANDOM = 'random',
-  CUSTOM = 'custom',
-}
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  Validate,
+  ArrayMinSize,
+} from 'class-validator';
+import { FlashcardManualDto } from './create-study-set-empty.dto';
+import { RequirePasswordIfNotPublic } from 'src/shared/validation/match-password';
 
 export class CreateStudySetDto {
   @IsString()
@@ -21,29 +24,12 @@ export class CreateStudySetDto {
   tags?: string[];
 
   @IsBoolean()
-  @IsOptional()
-  isPublic?: boolean;
+  isPublic: boolean;
 
-  @IsEnum(StudySetType)
-  type: StudySetType;
+  @Validate(RequirePasswordIfNotPublic)
+  password: string;
 
-  // For type = course
-  @IsNumber()
-  @IsOptional()
-  courseId?: number;
-
-  // For type = multi-course
   @IsArray()
-  @IsOptional()
-  courseIds?: number[];
-
-  // For type = random, multi-course
-  @IsNumber()
-  @IsOptional()
-  limit?: number;
-
-  // For type = custom
-  @IsArray()
-  @IsOptional()
-  flashcardIds?: number[];
-} 
+  @ArrayMinSize(3)
+  flashcards: FlashcardManualDto[];
+}

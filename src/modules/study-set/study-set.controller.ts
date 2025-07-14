@@ -3,6 +3,9 @@ import { StudySetService } from './study-set.service';
 import { CreateStudySetDto } from './dto/create-study-set.dto';
 import { UpdateStudySetDto } from './dto/update-study-set.dto';
 import { JwtAuthGuard } from 'src/config/jwt';
+import { CreateStudySetEmptyDto } from './dto/create-study-set-empty.dto';
+import { AddFlashcardsManualDto } from './dto/create-study-set-empty.dto';
+import { UpdateFlashcardDto } from '../flashcards/dto/update-flashcard.dto';
 
 @Controller('study-sets')
 @UseGuards(JwtAuthGuard)
@@ -12,6 +15,24 @@ export class StudySetController {
   @Post()
   create(@Req() req, @Body() dto: CreateStudySetDto) {
     return this.studySetService.create(req.user.id, dto);
+  }
+  @Post('empty')
+  createEmpty(@Req() req, @Body() dto: CreateStudySetEmptyDto) {
+    return this.studySetService.createEmpty(req.user.id, dto);
+  } 
+
+  @Post(':id/manual')
+  addFlashcardsManual(
+    @Req() req,
+    @Param('id') id: number,
+    @Body() dto: AddFlashcardsManualDto,
+  ) {
+    return this.studySetService.addFlashcardsManual(id, req.user.id, dto);
+  }
+
+  @Put(':id/flashcards')
+  updateFlashcardStudyset(@Req() req, @Param('id') id: number, @Body() dto: { flashcards: UpdateFlashcardDto[] }) {
+    return this.studySetService.replaceFlashcards(id, req.user.id, dto);
   }
 
   @Get()
