@@ -25,6 +25,8 @@ import { InstructorRequestModule } from './modules/instructor-request/instructor
 import { OrderModule } from './modules/order/order.module';
 import { StudySetModule } from './modules/study-set/study-set.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { TestModule } from './modules/test/test.module';
+import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module';
 
 @Module({
   imports: [
@@ -64,6 +66,8 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
     OrderModule,
     StudySetModule,
     EnrollmentModule,
+    TestModule,
+    QuizQuestionModule,
   ],
   controllers: [AppController],
   providers: [

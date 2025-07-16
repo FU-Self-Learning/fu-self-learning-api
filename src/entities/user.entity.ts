@@ -17,6 +17,7 @@ import { StudySession } from './study-session.entity';
 import { QuizResult } from './quiz-result.entity';
 import { CommentPost } from './comment-post.entity';
 import { StudySet } from './study-set.entity';
+import { TestAttempt } from './test-attempt.entity';
 
 @Entity('users')
 export class User {
@@ -97,6 +98,9 @@ export class User {
 
   @OneToMany(() => StudySet, (studySet) => studySet.user)
   studySets: StudySet[];
+
+  @OneToMany(() => TestAttempt, (attempt) => attempt.user)
+  testAttempts: TestAttempt[];
 
   @CreateDateColumn()
   createdAt: Date;
