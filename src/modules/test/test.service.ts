@@ -333,8 +333,9 @@ export class TestService {
       },
     });
 
+    // Nếu đã trả lời rồi thì xóa câu trả lời cũ
     if (existingAnswer) {
-      throw new BadRequestException('Question already answered');
+      await this.testAnswerRepository.remove(existingAnswer);
     }
 
     // Kiểm tra đáp án đúng
@@ -393,10 +394,17 @@ export class TestService {
     return TestAttemptResponseDto.fromEntity(savedAttempt);
   }
 
-  async getUserTestResults(userId: number): Promise<TestAttemptResponseDto[]> {
+  async getUserTestResults(userId: number, courseId?: number): Promise<TestAttemptResponseDto[]> {
+    const whereCondition: any = { user: { id: userId } };
+    
+    // Nếu có courseId thì lọc theo course
+    if (courseId) {
+      whereCondition.test = { course: { id: courseId } };
+    }
+
     const attempts = await this.testAttemptRepository.find({
-      where: { user: { id: userId } },
-      relations: ['test'],
+      where: whereCondition,
+      relations: ['test', 'test.course'],
       order: { createdAt: 'DESC' },
     });
 

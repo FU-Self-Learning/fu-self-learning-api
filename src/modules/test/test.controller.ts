@@ -97,8 +97,11 @@ export class TestController {
   }
 
   @Get('results/me')
-  async getMyTestResults(@GetUser() user: any): Promise<TestAttemptResponseDto[]> {
-    return this.testService.getUserTestResults(user.id);
+  async getMyTestResults(
+    @GetUser() user: any,
+    @Query('courseId') courseId?: number,
+  ): Promise<TestAttemptResponseDto[]> {
+    return this.testService.getUserTestResults(user.id, courseId);
   }
   
 
