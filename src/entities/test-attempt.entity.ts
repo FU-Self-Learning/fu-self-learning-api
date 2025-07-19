@@ -32,7 +32,11 @@ export class TestAttempt {
   @OneToMany(() => TestAnswer, (answer) => answer.attempt)
   answers: TestAnswer[];
 
-  @Column({ type: 'enum', enum: AttemptStatus, default: AttemptStatus.IN_PROGRESS })
+  @Column({
+    type: 'enum',
+    enum: AttemptStatus,
+    default: AttemptStatus.IN_PROGRESS,
+  })
   status: AttemptStatus;
 
   @Column()
@@ -61,4 +65,4 @@ export class TestAttempt {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

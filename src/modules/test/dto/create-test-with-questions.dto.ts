@@ -1,4 +1,14 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsBoolean, IsArray, Min, Max, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  IsArray,
+  Min,
+  Max,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { TestType } from 'src/entities/test.entity';
 
@@ -79,4 +89,4 @@ export class CreateTestWithQuestionsDto {
   @ValidateNested({ each: true })
   @Type(() => CreateQuestionForTestDto)
   questions?: CreateQuestionForTestDto[];
-} 
+}

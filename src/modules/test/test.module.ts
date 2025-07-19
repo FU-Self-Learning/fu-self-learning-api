@@ -26,4 +26,4 @@ import { QuizQuestionModule } from '../quiz-question/quiz-question.module';
   providers: [TestService],
   exports: [TestService],
 })
-export class TestModule {} 
+export class TestModule {}

@@ -65,9 +65,11 @@ export class QuizQuestionService {
       .getMany();
   }
 
-  async createMany(questions: CreateQuizQuestionDto[]): Promise<QuizQuestion[]> {
-    const createdQuestions = questions.map(dto => 
-      this.quizQuestionRepository.create(dto)
+  async createMany(
+    questions: CreateQuizQuestionDto[],
+  ): Promise<QuizQuestion[]> {
+    const createdQuestions = questions.map((dto) =>
+      this.quizQuestionRepository.create(dto),
     );
     return this.quizQuestionRepository.save(createdQuestions);
   }

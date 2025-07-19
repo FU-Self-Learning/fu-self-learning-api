@@ -1,4 +1,15 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards, Patch, Body, ValidationPipe, Req, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  UseGuards,
+  Patch,
+  Body,
+  ValidationPipe,
+  Req,
+  Delete,
+} from '@nestjs/common';
 import { EnrollmentService } from './enrollment.service';
 import { JwtAuthGuard } from '../../config/jwt/jwt-auth.guard';
 import { User } from '../../entities/user.entity';
@@ -20,7 +31,10 @@ export class EnrollmentController {
     @Req() req: any,
     @Param('courseId', ParseIntPipe) courseId: number,
   ) {
-    const isEnrolled = await this.enrollmentService.isUserEnrolled(req.user.id, courseId);
+    const isEnrolled = await this.enrollmentService.isUserEnrolled(
+      req.user.id,
+      courseId,
+    );
     return { isEnrolled };
   }
 
@@ -37,7 +51,7 @@ export class EnrollmentController {
     return this.enrollmentService.updateProgress(
       req.user.id,
       courseId,
-      updateEnrollmentDto.progress
+      updateEnrollmentDto.progress,
     );
   }
 
@@ -61,9 +75,13 @@ export class EnrollmentController {
   async setCertificate(
     @Req() req: any,
     @Param('courseId', ParseIntPipe) courseId: number,
-    @Body('certificateUrl') certificateUrl: string
+    @Body('certificateUrl') certificateUrl: string,
   ) {
     const user = req.user as User;
-    return this.enrollmentService.setCertificateUrl(user.id, courseId, certificateUrl);
+    return this.enrollmentService.setCertificateUrl(
+      user.id,
+      courseId,
+      certificateUrl,
+    );
   }
 }

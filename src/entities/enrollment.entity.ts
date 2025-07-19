@@ -12,7 +12,7 @@ import { User } from './user.entity';
 import { Course } from './course.entity';
 
 @Entity('enrollments')
-@Index(['user', 'course'], { unique: true }) 
+@Index(['user', 'course'], { unique: true })
 export class Enrollment {
   @PrimaryGeneratedColumn()
   id: number;
@@ -26,9 +26,9 @@ export class Enrollment {
   course: Course;
 
   @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-  progress: number; 
+  progress: number;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   enrollAt: Date;
 
   @Column({ nullable: true })

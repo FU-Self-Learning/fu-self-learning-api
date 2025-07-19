@@ -1,5 +1,12 @@
 import { Expose, Type, Transform } from 'class-transformer';
-import { IsBoolean, IsOptional, IsString, IsNumber, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 
 export class OrderCourseDto {
   @Expose()

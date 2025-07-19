@@ -32,7 +32,9 @@ export class StudySet {
   @ManyToOne(() => User, (user) => user.studySets)
   user: User;
 
-  @OneToMany(() => Flashcard, (flashcard) => flashcard.studySet, { cascade: true })
+  @OneToMany(() => Flashcard, (flashcard) => flashcard.studySet, {
+    cascade: true,
+  })
   flashcards: Flashcard[];
 
   @CreateDateColumn()
@@ -40,4 +42,4 @@ export class StudySet {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

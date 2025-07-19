@@ -76,4 +76,4 @@ export class TestQuestionDto {
 export class TestDetailDto extends TestResponseDto {
   questions: TestQuestionDto[];
   currentAttempt?: TestAttemptResponseDto;
-} 
+}

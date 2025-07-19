@@ -77,25 +77,31 @@ export class AiAgentService {
     }
   }
 
-  async generateFlashcards(prompt: string): Promise<Array<{front_text: string, back_text: string}>> {
+  async generateFlashcards(
+    prompt: string,
+  ): Promise<Array<{ front_text: string; back_text: string }>> {
     try {
       const flashcardPrompt = PromptTemplate.fromTemplate(prompt);
-      const flashcardChain = RunnableSequence.from([flashcardPrompt, this.openAIModel]);
-      
+      const flashcardChain = RunnableSequence.from([
+        flashcardPrompt,
+        this.openAIModel,
+      ]);
+
       const response = await flashcardChain.invoke({});
-      
+
       // Convert response content to string
-      const responseContent = typeof response.content === 'string' 
-        ? response.content 
-        : JSON.stringify(response.content);
-      
+      const responseContent =
+        typeof response.content === 'string'
+          ? response.content
+          : JSON.stringify(response.content);
+
       // Parse JSON response
       const jsonMatch = responseContent.match(/```json([\s\S]*?)```/);
       if (jsonMatch) {
         const flashcards = JSON.parse(jsonMatch[1]);
         return Array.isArray(flashcards) ? flashcards : [];
       }
-      
+
       // Fallback: try to parse JSON without markdown
       try {
         const flashcards = JSON.parse(responseContent);

@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
 import { plainToClass } from 'class-transformer';
@@ -8,7 +14,12 @@ import { User } from '../../entities/user.entity';
 import { Course } from '../../entities/course.entity';
 import { EnrollmentService } from '../enrollment/enrollment.service';
 import { PayOsService } from './payos.service';
-import { CreateOrderResponseDto, UserOrdersResponseDto, WebhookProcessResultDto, OrderDto } from './dto/order-response.dto';
+import {
+  CreateOrderResponseDto,
+  UserOrdersResponseDto,
+  WebhookProcessResultDto,
+  OrderDto,
+} from './dto/order-response.dto';
 
 @Injectable()
 export class OrderService {
@@ -24,18 +35,24 @@ export class OrderService {
     private readonly payOsService: PayOsService,
   ) {}
 
-  async createOrder(user: User, courseId: number, amount: number): Promise<{ order: Order, orderCode: number }> {
-    const course = await this.courseRepository.findOne({ where: { id: courseId } });
+  async createOrder(
+    user: User,
+    courseId: number,
+    amount: number,
+  ): Promise<{ order: Order; orderCode: number }> {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+    });
     if (!course) {
       throw new NotFoundException('Course not found');
     }
 
     const existingOrder = await this.orderRepository.findOne({
-      where: { 
-        user: { id: user.id }, 
+      where: {
+        user: { id: user.id },
         course: { id: courseId },
-        status: OrderStatus.PAID 
-      }
+        status: OrderStatus.PAID,
+      },
     });
 
     if (existingOrder) {
@@ -44,7 +61,9 @@ export class OrderService {
 
     const coursePrice = Number(course.price);
     if (amount !== coursePrice) {
-      throw new BadRequestException(`Amount ${amount} does not match course price ${coursePrice}`);
+      throw new BadRequestException(
+        `Amount ${amount} does not match course price ${coursePrice}`,
+      );
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -58,10 +77,10 @@ export class OrderService {
         amount,
         status: OrderStatus.PENDING,
       });
-      
+
       const savedOrder = await queryRunner.manager.save(order);
       await queryRunner.commitTransaction();
-      
+
       this.logger.log(`Order created successfully: ${savedOrder.id}`);
       return { order: savedOrder, orderCode: savedOrder.id };
     } catch (error) {
@@ -74,103 +93,138 @@ export class OrderService {
   }
 
   async getUserOrders(userId: number): Promise<Order[]> {
-    return this.orderRepository.find({ 
-      where: { user: { id: userId } }, 
+    return this.orderRepository.find({
+      where: { user: { id: userId } },
       relations: ['course', 'user'],
-      order: { createdAt: 'DESC' } 
+      order: { createdAt: 'DESC' },
     });
   }
 
   async getOrderById(orderId: number): Promise<Order> {
-    const order = await this.orderRepository.findOne({ 
+    const order = await this.orderRepository.findOne({
       where: { id: orderId },
-      relations: ['course', 'user']
+      relations: ['course', 'user'],
     });
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
 
-  async updatePayOsOrderId(orderId: number, payOsOrderId: string): Promise<Order> {
-    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+  async updatePayOsOrderId(
+    orderId: number,
+    payOsOrderId: string,
+  ): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Order not found');
-    
+
     order.payOsOrderId = payOsOrderId;
     const updatedOrder = await this.orderRepository.save(order);
-    
-    this.logger.log(`PayOS Order ID updated for order ${orderId}: ${payOsOrderId}`);
+
+    this.logger.log(
+      `PayOS Order ID updated for order ${orderId}: ${payOsOrderId}`,
+    );
     return updatedOrder;
   }
 
-  async updateOrderStatus(orderId: number, status: OrderStatus): Promise<Order> {
-    const order = await this.orderRepository.findOne({ where: { id: orderId } });
+  async updateOrderStatus(
+    orderId: number,
+    status: OrderStatus,
+  ): Promise<Order> {
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    });
     if (!order) throw new NotFoundException('Order not found');
-    
+
     order.status = status;
     const updatedOrder = await this.orderRepository.save(order);
-    
+
     this.logger.log(`Order ${orderId} status updated to: ${status}`);
     return updatedOrder;
   }
 
-  async updateOrderStatusByPayOsOrderId(payOsOrderId: string, status: OrderStatus): Promise<Order> {
-    const order = await this.orderRepository.findOne({ 
+  async updateOrderStatusByPayOsOrderId(
+    payOsOrderId: string,
+    status: OrderStatus,
+  ): Promise<Order> {
+    const order = await this.orderRepository.findOne({
       where: { payOsOrderId },
-      relations: ['user', 'course']
+      relations: ['user', 'course'],
     });
     if (!order) throw new NotFoundException('Order not found by payOsOrderId');
-    
+
     order.status = status;
     const updatedOrder = await this.orderRepository.save(order);
-    
+
     if (status === OrderStatus.PAID) {
       try {
         if (order.user && order.course) {
           await this.enrollmentService.enrollUser(order.user, order.course);
-          this.logger.log(`User ${order.user.id} auto-enrolled in course ${order.course.id} after payment`);
+          this.logger.log(
+            `User ${order.user.id} auto-enrolled in course ${order.course.id} after payment`,
+          );
         } else {
-          this.logger.warn(`Missing user or course data for order ${order.id}. User: ${!!order.user}, Course: ${!!order.course}`);
+          this.logger.warn(
+            `Missing user or course data for order ${order.id}. User: ${!!order.user}, Course: ${!!order.course}`,
+          );
         }
       } catch (error) {
-        this.logger.error(`Failed to auto-enroll user ${order.user?.id} in course ${order.course?.id}: ${error.message}`);
+        this.logger.error(
+          `Failed to auto-enroll user ${order.user?.id} in course ${order.course?.id}: ${error.message}`,
+        );
       }
     }
-    
-    this.logger.log(`Order with PayOS ID ${payOsOrderId} status updated to: ${status}`);
+
+    this.logger.log(
+      `Order with PayOS ID ${payOsOrderId} status updated to: ${status}`,
+    );
     return updatedOrder;
   }
 
   async getOrderByPayOsOrderId(payOsOrderId: string): Promise<Order | null> {
-    return this.orderRepository.findOne({ 
+    return this.orderRepository.findOne({
       where: { payOsOrderId },
-      relations: ['course', 'user']
+      relations: ['course', 'user'],
     });
   }
 
-  async createOrderWithPayment(user: User, courseId: number, amount: number): Promise<CreateOrderResponseDto> {
+  async createOrderWithPayment(
+    user: User,
+    courseId: number,
+    amount: number,
+  ): Promise<CreateOrderResponseDto> {
     try {
-      const { order, orderCode } = await this.createOrder(user, courseId, amount);
+      const { order, orderCode } = await this.createOrder(
+        user,
+        courseId,
+        amount,
+      );
       const payOs = await this.payOsService.createPayment(amount, orderCode);
       await this.updatePayOsOrderId(order.id, payOs.payOsOrderId);
-      
+
       order.payOsOrderId = payOs.payOsOrderId;
-      
+
       this.logger.log(`Payment created for user ${user.id}, order ${order.id}`);
-      
+
       const response = new CreateOrderResponseDto();
       response.success = true;
-      response.order = plainToClass(OrderDto, order, { excludeExtraneousValues: true });
+      response.order = plainToClass(OrderDto, order, {
+        excludeExtraneousValues: true,
+      });
       response.payUrl = payOs.payUrl;
       response.payOsOrderId = payOs.payOsOrderId;
-      
+
       return response;
     } catch (error) {
-      this.logger.error(`Failed to create order for user ${user.id}: ${error.message}`);
-      
+      this.logger.error(
+        `Failed to create order for user ${user.id}: ${error.message}`,
+      );
+
       const response = new CreateOrderResponseDto();
       response.success = false;
       response.message = error.message;
       response.error = error.name;
-      
+
       return response;
     }
   }
@@ -178,46 +232,55 @@ export class OrderService {
   async getUserOrdersFormatted(userId: number): Promise<UserOrdersResponseDto> {
     try {
       const orders = await this.getUserOrders(userId);
-      const transformedOrders = orders.map(order => 
-        plainToClass(OrderDto, order, { excludeExtraneousValues: true })
+      const transformedOrders = orders.map((order) =>
+        plainToClass(OrderDto, order, { excludeExtraneousValues: true }),
       );
-      
+
       const response = new UserOrdersResponseDto();
       response.success = true;
       response.orders = transformedOrders;
       response.count = transformedOrders.length;
-      
+
       return response;
     } catch (error) {
-      this.logger.error(`Failed to get user orders for user ${userId}: ${error.message}`);
-      
+      this.logger.error(
+        `Failed to get user orders for user ${userId}: ${error.message}`,
+      );
+
       const response = new UserOrdersResponseDto();
       response.success = false;
       response.message = 'Failed to retrieve orders';
       response.error = error.message;
-      
+
       return response;
     }
   }
 
-  async processWebhook(body: any, payos: any): Promise<WebhookProcessResultDto> {
+  async processWebhook(
+    body: any,
+    payos: any,
+  ): Promise<WebhookProcessResultDto> {
     try {
       this.logger.log('Processing webhook with body:', JSON.stringify(body));
-      
+
       const webhookDataVerified = payos.verifyPaymentWebhookData(body);
-      this.logger.log('Verified webhook data:', JSON.stringify(webhookDataVerified));
+      this.logger.log(
+        'Verified webhook data:',
+        JSON.stringify(webhookDataVerified),
+      );
 
       if (!webhookDataVerified) {
         const response = new WebhookProcessResultDto();
         response.success = false;
         response.statusCode = 403;
-        response.message = 'Invalid signature - webhook data verification failed';
+        response.message =
+          'Invalid signature - webhook data verification failed';
         return response;
       }
 
       const orderCode = webhookDataVerified.orderCode?.toString();
       const code = webhookDataVerified.code;
-      
+
       if (!orderCode) {
         const response = new WebhookProcessResultDto();
         response.success = false;
@@ -229,7 +292,10 @@ export class OrderService {
       this.logger.log('Webhook received orderCode:', orderCode);
 
       const orderInDb = await this.getOrderByPayOsOrderId(orderCode);
-      this.logger.log('Order in DB:', orderInDb ? JSON.stringify(orderInDb) : 'Not found');
+      this.logger.log(
+        'Order in DB:',
+        orderInDb ? JSON.stringify(orderInDb) : 'Not found',
+      );
 
       if (!orderInDb) {
         const response = new WebhookProcessResultDto();
@@ -247,7 +313,10 @@ export class OrderService {
         response.message = `Order ${orderCode} marked as PAID successfully`;
         return response;
       } else {
-        await this.updateOrderStatusByPayOsOrderId(orderCode, OrderStatus.FAILED);
+        await this.updateOrderStatusByPayOsOrderId(
+          orderCode,
+          OrderStatus.FAILED,
+        );
         const response = new WebhookProcessResultDto();
         response.success = true;
         response.statusCode = 200;

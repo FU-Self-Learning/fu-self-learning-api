@@ -1,4 +1,12 @@
-import { IsString, IsNotEmpty, IsOptional, IsBoolean, IsArray, Validate, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  Validate,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { RequirePasswordIfNotPublic } from 'src/shared/validation/match-password';
 
@@ -14,7 +22,7 @@ export class CreateStudySetEmptyDto {
   @IsArray()
   @IsOptional()
   tags?: string[];
-  
+
   @IsBoolean()
   isPublic: boolean;
 

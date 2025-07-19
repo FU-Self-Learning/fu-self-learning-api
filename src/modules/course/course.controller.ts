@@ -261,15 +261,21 @@ export class CourseController {
     // Validate file sizes
     if (files.thumbnail && files.thumbnail.length > 0) {
       const thumbnailFile = files.thumbnail[0];
-      if (thumbnailFile.size > 5 * 1024 * 1024) { // 5MB limit for images
-        throw new BadRequestException('Thumbnail image size must be less than 5MB');
+      if (thumbnailFile.size > 5 * 1024 * 1024) {
+        // 5MB limit for images
+        throw new BadRequestException(
+          'Thumbnail image size must be less than 5MB',
+        );
       }
     }
 
     if (files.videoIntro && files.videoIntro.length > 0) {
       const videoFile = files.videoIntro[0];
-      if (videoFile.size > 100 * 1024 * 1024) { // 100MB limit for videos
-        throw new BadRequestException('Video intro size must be less than 100MB');
+      if (videoFile.size > 100 * 1024 * 1024) {
+        // 100MB limit for videos
+        throw new BadRequestException(
+          'Video intro size must be less than 100MB',
+        );
       }
     }
 
@@ -279,15 +285,16 @@ export class CourseController {
     // Upload thumbnail if provided
     if (files.thumbnail && files.thumbnail.length > 0) {
       const thumbnailFile = files.thumbnail[0];
-      
+
       // Validate file type
       this.cloudinaryService.validateFile(thumbnailFile, 'image');
-      
+
       try {
-        const uploadedThumbnail = await this.cloudinaryService.uploadImageFromBuffer(
-          thumbnailFile.buffer,
-          'course-thumbnails'
-        );
+        const uploadedThumbnail =
+          await this.cloudinaryService.uploadImageFromBuffer(
+            thumbnailFile.buffer,
+            'course-thumbnails',
+          );
         imageUrl = uploadedThumbnail.secure_url;
       } catch (error) {
         this.logger.error('Error uploading thumbnail:', error);
@@ -298,15 +305,16 @@ export class CourseController {
     // Upload video intro if provided
     if (files.videoIntro && files.videoIntro.length > 0) {
       const videoFile = files.videoIntro[0];
-      
+
       // Validate file type
       this.cloudinaryService.validateFile(videoFile, 'video');
-      
+
       try {
-        const uploadedVideo = await this.cloudinaryService.uploadVideoFromBuffer(
-          videoFile.buffer,
-          'course-videos'
-        );
+        const uploadedVideo =
+          await this.cloudinaryService.uploadVideoFromBuffer(
+            videoFile.buffer,
+            'course-videos',
+          );
         videoIntroUrl = uploadedVideo.secure_url;
       } catch (error) {
         this.logger.error('Error uploading video intro:', error);

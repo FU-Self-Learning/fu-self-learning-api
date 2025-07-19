@@ -16,4 +16,4 @@ export class GenerateFlashcardDto {
   @IsString()
   @IsOptional()
   prompt?: string; // Optional custom prompt for AI
-} 
+}

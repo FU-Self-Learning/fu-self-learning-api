@@ -55,7 +55,9 @@ export class GeminiService {
     }
   }
 
-  async generateFlashcards(prompt: string): Promise<Array<{front_text: string, back_text: string}>> {
+  async generateFlashcards(
+    prompt: string,
+  ): Promise<Array<{ front_text: string; back_text: string }>> {
     try {
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
@@ -166,7 +168,9 @@ export class GeminiService {
     };
   }
 
-  private parseFlashcardResponse(response: string): Array<{front_text: string, back_text: string}> {
+  private parseFlashcardResponse(
+    response: string,
+  ): Array<{ front_text: string; back_text: string }> {
     try {
       // Extract JSON from the response (in case there's extra text)
       const jsonMatch = response.match(/\[[\s\S]*\]/);
@@ -181,15 +185,18 @@ export class GeminiService {
       }
 
       const flashcards = JSON.parse(jsonMatch[0]);
-      
+
       // Validate that it's an array of objects with front_text and back_text
       if (!Array.isArray(flashcards)) {
         throw new Error('Response is not an array');
       }
 
       // Validate each flashcard has required fields
-      const validFlashcards = flashcards.filter(card => 
-        card && typeof card.front_text === 'string' && typeof card.back_text === 'string'
+      const validFlashcards = flashcards.filter(
+        (card) =>
+          card &&
+          typeof card.front_text === 'string' &&
+          typeof card.back_text === 'string',
       );
 
       return validFlashcards;
@@ -200,20 +207,23 @@ export class GeminiService {
     }
   }
 
-  private getFallbackFlashcards(): Array<{front_text: string, back_text: string}> {
+  private getFallbackFlashcards(): Array<{
+    front_text: string;
+    back_text: string;
+  }> {
     return [
       {
-        front_text: "What is the main topic?",
-        back_text: "The main topic is the primary subject being discussed."
+        front_text: 'What is the main topic?',
+        back_text: 'The main topic is the primary subject being discussed.',
       },
       {
-        front_text: "What are the key concepts?",
-        back_text: "Key concepts are the fundamental ideas and principles."
+        front_text: 'What are the key concepts?',
+        back_text: 'Key concepts are the fundamental ideas and principles.',
       },
       {
-        front_text: "What is the definition?",
-        back_text: "A definition explains the meaning of a term or concept."
-      }
+        front_text: 'What is the definition?',
+        back_text: 'A definition explains the meaning of a term or concept.',
+      },
     ];
   }
 }

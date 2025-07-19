@@ -84,7 +84,8 @@ export class ChatGateway
 
   @SubscribeMessage('loadMessages')
   async loadMessages(
-    @MessageBody() data: { senderUserId: number; receiverUserId: number } | string,
+    @MessageBody()
+    data: { senderUserId: number; receiverUserId: number } | string,
     @ConnectedSocket() client: Socket,
   ) {
     let parsedData: { senderUserId: number; receiverUserId: number };

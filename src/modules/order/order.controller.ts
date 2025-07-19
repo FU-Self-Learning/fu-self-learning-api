@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Req, UseGuards, Param, Get, ParseIntPipe, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  UseGuards,
+  Param,
+  Get,
+  ParseIntPipe,
+  Logger,
+} from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from '../../config/jwt/jwt-auth.guard';
 import { User } from '../../entities/user.entity';
@@ -18,7 +28,11 @@ export class OrderController {
     @Body() createOrderDto: CreateOrderDto,
   ) {
     const user = req.user as User;
-    return this.orderService.createOrderWithPayment(user, courseId, createOrderDto.amount);
+    return this.orderService.createOrderWithPayment(
+      user,
+      courseId,
+      createOrderDto.amount,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

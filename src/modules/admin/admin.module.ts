@@ -5,14 +5,18 @@ import { User } from 'src/entities/user.entity';
 import { AdminController } from './admin.controller';
 import { UsersModule } from '../users/users.module';
 import { CourseModule } from '../course/course.module';
+import { OrderStatsService } from '../order/order-stats.service';
+import { UserStatsService } from '../users/user-stats.service';
+import { Order } from 'src/entities/order.entity';
+import { AdminService } from './admin.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Course]),
+    TypeOrmModule.forFeature([User, Course, Order]),
     UsersModule,
     CourseModule,
   ],
-  providers: [],
+  providers: [OrderStatsService, UserStatsService, AdminService],
   controllers: [AdminController],
   exports: [],
 })

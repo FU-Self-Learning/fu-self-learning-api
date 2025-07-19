@@ -30,4 +30,4 @@ export class TestAnswer {
 
   @CreateDateColumn()
   answeredAt: Date;
-} 
+}

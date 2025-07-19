@@ -71,4 +71,4 @@ export class Test {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

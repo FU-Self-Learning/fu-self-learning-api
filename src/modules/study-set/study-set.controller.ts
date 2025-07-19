@@ -1,4 +1,14 @@
-import { Controller, Post, Body, Get, Param, Put, Delete, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { StudySetService } from './study-set.service';
 import { CreateStudySetDto } from './dto/create-study-set.dto';
 import { UpdateStudySetDto } from './dto/update-study-set.dto';
@@ -19,7 +29,7 @@ export class StudySetController {
   @Post('empty')
   createEmpty(@Req() req, @Body() dto: CreateStudySetEmptyDto) {
     return this.studySetService.createEmpty(req.user.id, dto);
-  } 
+  }
 
   @Post(':id/manual')
   addFlashcardsManual(
@@ -31,7 +41,11 @@ export class StudySetController {
   }
 
   @Put(':id/flashcards')
-  updateFlashcardStudyset(@Req() req, @Param('id') id: number, @Body() dto: { flashcards: UpdateFlashcardDto[] }) {
+  updateFlashcardStudyset(
+    @Req() req,
+    @Param('id') id: number,
+    @Body() dto: { flashcards: UpdateFlashcardDto[] },
+  ) {
     return this.studySetService.replaceFlashcards(id, req.user.id, dto);
   }
 
@@ -54,4 +68,4 @@ export class StudySetController {
   remove(@Req() req, @Param('id') id: number) {
     return this.studySetService.remove(id, req.user.id);
   }
-} 
+}

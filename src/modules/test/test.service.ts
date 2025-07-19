@@ -123,7 +123,9 @@ export class TestService {
     }
 
     if (course.instructor.id !== instructorId) {
-      throw new ForbiddenException('You can only create tests for your own courses');
+      throw new ForbiddenException(
+        'You can only create tests for your own courses',
+      );
     }
 
     // Tạo test mới
@@ -134,7 +136,8 @@ export class TestService {
     test.type = createTestWithQuestionsDto.type || TestType.PRACTICE;
     test.duration = createTestWithQuestionsDto.duration || 60;
     test.passingScore = createTestWithQuestionsDto.passingScore || 60;
-    test.shuffleQuestions = createTestWithQuestionsDto.shuffleQuestions || false;
+    test.shuffleQuestions =
+      createTestWithQuestionsDto.shuffleQuestions || false;
     test.shuffleAnswers = createTestWithQuestionsDto.shuffleAnswers || false;
 
     // Thêm topics nếu có
@@ -150,18 +153,22 @@ export class TestService {
 
     // Tạo câu hỏi thủ công nếu có
     if (createTestWithQuestionsDto.questions?.length) {
-      const questionDtos = createTestWithQuestionsDto.questions.map(q => ({
+      const questionDtos = createTestWithQuestionsDto.questions.map((q) => ({
         question_text: q.question_text,
         correct_answer: q.correct_answer,
         choices: q.choices,
         topicId: q.topicId,
       }));
-      
-      createdQuestions = await this.quizQuestionService.createMany(questionDtos);
+
+      createdQuestions =
+        await this.quizQuestionService.createMany(questionDtos);
     }
 
     // TODO: Tích hợp AI để tự động tạo câu hỏi
-    if (createTestWithQuestionsDto.autoGenerate && createTestWithQuestionsDto.autoGenerateCount) {
+    if (
+      createTestWithQuestionsDto.autoGenerate &&
+      createTestWithQuestionsDto.autoGenerateCount
+    ) {
       // Placeholder cho AI generation
       // const aiQuestions = await this.generateQuestionsWithAI(
       //   createTestWithQuestionsDto.autoGeneratePrompt,
@@ -172,10 +179,15 @@ export class TestService {
     }
 
     // Nếu không có câu hỏi mới được tạo, auto-select từ topics
-    if (createdQuestions.length === 0 && createTestWithQuestionsDto.topicIds?.length) {
+    if (
+      createdQuestions.length === 0 &&
+      createTestWithQuestionsDto.topicIds?.length
+    ) {
       const existingQuestions = await this.quizQuestionRepository
         .createQueryBuilder('q')
-        .where('q.topicId IN (:...topicIds)', { topicIds: createTestWithQuestionsDto.topicIds })
+        .where('q.topicId IN (:...topicIds)', {
+          topicIds: createTestWithQuestionsDto.topicIds,
+        })
         .limit(10) // default limit
         .orderBy('RANDOM()')
         .getMany();
@@ -405,7 +417,10 @@ export class TestService {
     );
   }
 
-  async getUserTestResultById(userId: number, testId: number): Promise<TestAttemptResponseDto> {
+  async getUserTestResultById(
+    userId: number,
+    testId: number,
+  ): Promise<TestAttemptResponseDto> {
     const attempt = await this.testAttemptRepository.findOne({
       where: { user: { id: userId }, id: testId },
       relations: ['test'],
@@ -416,7 +431,10 @@ export class TestService {
     return TestAttemptResponseDto.fromEntity(attempt);
   }
 
-  async getAttemptProgress(attemptId: number, userId: number): Promise<TestAttemptProgressDto> {
+  async getAttemptProgress(
+    attemptId: number,
+    userId: number,
+  ): Promise<TestAttemptProgressDto> {
     const attempt = await this.testAttemptRepository.findOne({
       where: { id: attemptId, user: { id: userId } },
       relations: ['test', 'answers', 'answers.question'],
@@ -432,13 +450,14 @@ export class TestService {
 
     // Tính thời gian còn lại
     const now = new Date();
-    const timeElapsedSeconds = (now.getTime() - attempt.startedAt.getTime()) / 1000;
+    const timeElapsedSeconds =
+      (now.getTime() - attempt.startedAt.getTime()) / 1000;
     const durationSeconds = attempt.test.duration * 60;
     const timeRemaining = Math.max(0, durationSeconds - timeElapsedSeconds);
     const isExpired = timeRemaining <= 0;
 
     // Lấy thông tin các câu trả lời đã submit
-    const answers: TestAnswerProgressDto[] = attempt.answers.map(answer => ({
+    const answers: TestAnswerProgressDto[] = attempt.answers.map((answer) => ({
       questionId: answer.question.id,
       questionText: answer.question.question_text,
       choices: answer.question.choices,

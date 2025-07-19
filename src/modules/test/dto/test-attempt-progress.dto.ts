@@ -21,4 +21,4 @@ export class TestAttemptProgressDto {
   answers: TestAnswerProgressDto[];
   timeRemaining: number; // giây còn lại
   isExpired: boolean;
-} 
+}

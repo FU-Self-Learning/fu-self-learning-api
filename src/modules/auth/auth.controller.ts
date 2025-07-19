@@ -49,7 +49,7 @@ export class AuthController {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 
-    const redirectUrl = `http://localhost:3000/login-google?accessToken=${accessToken}&refreshToken=${refreshToken}&userInfo=${encodeURIComponent(JSON.stringify(user))}`;
+    const redirectUrl = `https://fu-self-learning-ui-22235821035.asia-southeast1.run.app/login-google?accessToken=${accessToken}&refreshToken=${refreshToken}&userInfo=${encodeURIComponent(JSON.stringify(user))}`;
 
     return res.redirect(redirectUrl);
   }

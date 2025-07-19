@@ -29,7 +29,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         email: emails[0].value,
         name: name?.givenName || emails[0].value.split('@')[0],
         picture: photos?.[0]?.value || null,
-        provider: 'google'
+        provider: 'google',
       };
     } catch (error) {
       throw error;

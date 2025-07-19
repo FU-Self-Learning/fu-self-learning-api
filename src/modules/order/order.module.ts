@@ -9,10 +9,7 @@ import { PayOsService } from './payos.service';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Order, Course]),
-    EnrollmentModule
-  ],
+  imports: [TypeOrmModule.forFeature([Order, Course]), EnrollmentModule],
   controllers: [OrderController, OrderWebhookController],
   providers: [OrderService, PayOsService],
   exports: [OrderService],

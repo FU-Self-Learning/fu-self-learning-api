@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 
 export class UpdateStudySetDto {
   @IsString()
@@ -20,4 +26,4 @@ export class UpdateStudySetDto {
   @IsArray()
   @IsOptional()
   flashcardIds?: number[];
-} 
+}

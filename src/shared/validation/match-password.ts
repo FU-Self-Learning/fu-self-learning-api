@@ -17,7 +17,9 @@ export class MatchPassword implements ValidatorConstraintInterface {
 }
 
 @ValidatorConstraint({ name: 'RequirePasswordIfNotPublic', async: false })
-export class RequirePasswordIfNotPublic implements ValidatorConstraintInterface {
+export class RequirePasswordIfNotPublic
+  implements ValidatorConstraintInterface
+{
   validate(password: string, args: ValidationArguments) {
     const isPublic = (args.object as any).isPublic;
     if (isPublic === false) {

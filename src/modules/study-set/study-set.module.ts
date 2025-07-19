@@ -17,4 +17,4 @@ import { FlashcardsModule } from '../flashcards/flashcards.module';
   providers: [StudySetService],
   exports: [StudySetService],
 })
-export class StudySetModule {} 
+export class StudySetModule {}

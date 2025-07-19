@@ -37,7 +37,9 @@ export class Flashcard {
   @Column({ nullable: true })
   generation_source: string; // 'lesson', 'topic', 'course'
 
-  @ManyToOne(() => StudySet, (studySet) => studySet.flashcards, { nullable: true })
+  @ManyToOne(() => StudySet, (studySet) => studySet.flashcards, {
+    nullable: true,
+  })
   studySet: StudySet;
 
   @CreateDateColumn()

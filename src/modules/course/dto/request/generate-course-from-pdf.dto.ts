@@ -58,4 +58,4 @@ export class GeneratedCourseDto {
 export class GenerateCourseFromPdfResponseDto {
   course: GeneratedCourseDto;
   topics: GeneratedTopicDto[];
-} 
+}

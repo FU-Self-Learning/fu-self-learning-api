@@ -47,11 +47,16 @@ export class TestController {
     @Body() createTestWithQuestionsDto: CreateTestWithQuestionsDto,
     @GetUser() instructor: any,
   ): Promise<TestResponseDto> {
-    return this.testService.createTestWithQuestions(createTestWithQuestionsDto, Number(instructor.id));
+    return this.testService.createTestWithQuestions(
+      createTestWithQuestionsDto,
+      Number(instructor.id),
+    );
   }
 
   @Get('course/:courseId')
-  async getTestsByCourse(@Param('courseId') courseId: number): Promise<TestResponseDto[]> {
+  async getTestsByCourse(
+    @Param('courseId') courseId: number,
+  ): Promise<TestResponseDto[]> {
     return this.testService.getTestsByCourse(courseId);
   }
 
@@ -97,10 +102,11 @@ export class TestController {
   }
 
   @Get('results/me')
-  async getMyTestResults(@GetUser() user: any): Promise<TestAttemptResponseDto[]> {
+  async getMyTestResults(
+    @GetUser() user: any,
+  ): Promise<TestAttemptResponseDto[]> {
     return this.testService.getUserTestResults(user.id);
   }
-  
 
   @Get('attempt/:attemptId/progress')
   async getAttemptProgress(
@@ -109,4 +115,4 @@ export class TestController {
   ): Promise<TestAttemptProgressDto> {
     return this.testService.getAttemptProgress(attemptId, user.id);
   }
-} 
+}

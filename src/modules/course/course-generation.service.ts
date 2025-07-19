@@ -8,7 +8,11 @@ import { User } from '../../entities/user.entity';
 import { Category } from '../../entities/category.entity';
 import { PdfService } from '../pdf/pdf.service';
 import { GeminiService } from '../ai-agent/gemini.service';
-import { GeneratedCourseDto, GeneratedTopicDto, GenerateCourseFromPdfResponseDto } from './dto/request/generate-course-from-pdf.dto';
+import {
+  GeneratedCourseDto,
+  GeneratedTopicDto,
+  GenerateCourseFromPdfResponseDto,
+} from './dto/request/generate-course-from-pdf.dto';
 import { CreateCourseDto } from './dto/request/create-course.dto';
 import { CreateTopicDto } from '../../modules/topic/dto/request/create-topic.dto';
 import { CreateLessonDto } from '../../modules/lesson/dto/request/create-lesson.dto';
@@ -40,7 +44,7 @@ export class CourseGenerationService {
     try {
       // Extract text from PDF
       const pdfText = await this.pdfService.extractTextFromBuffer(pdfBuffer);
-      
+
       if (!pdfText || pdfText.trim().length === 0) {
         throw new BadRequestException({
           message: ErrorMessage.INVALID_REQUEST_INPUT,
@@ -64,12 +68,14 @@ export class CourseGenerationService {
       }
 
       // Validate categories
-      const categories = await this.validateCategories(aiResult.course.categoryIds);
+      const categories = await this.validateCategories(
+        aiResult.course.categoryIds,
+      );
 
       return {
         course: {
           ...aiResult.course,
-          categoryIds: categories.map(cat => cat.id),
+          categoryIds: categories.map((cat) => cat.id),
         },
         topics: aiResult.topics,
       };
@@ -158,4 +164,4 @@ export class CourseGenerationService {
 
     return categories;
   }
-} 
+}
