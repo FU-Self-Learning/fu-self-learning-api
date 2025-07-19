@@ -31,9 +31,7 @@ export class GroupChatService {
     const group = this.groupChatRepo.create({ name: dto.name, course, creator });
     const savedGroup = await this.groupChatRepo.save(group);
 
-    // Add creator as member (admin)
     await this.groupMemberRepo.save({ group: savedGroup, user: creator, role: 'admin' });
-    // Add other members
     if (dto.memberIds && dto.memberIds.length > 0) {
       const members = await this.userRepo.findByIds(dto.memberIds);
       for (const member of members) {
@@ -55,7 +53,6 @@ export class GroupChatService {
     const group = await this.groupChatRepo.findOneBy({ id: groupId });
     const sender = await this.userRepo.findOneBy({ id: senderId });
     if (!group || !sender) throw new NotFoundException('Group or sender not found');
-    // Check if sender is member
     const isMember = await this.groupMemberRepo.findOne({ where: { group: { id: groupId }, user: { id: senderId } } });
     if (!isMember) throw new ForbiddenException('Not a group member');
     const msg = this.groupMessageRepo.create({ group, sender, message });

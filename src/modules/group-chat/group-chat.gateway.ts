@@ -50,6 +50,7 @@ export class GroupChatGateway implements OnGatewayConnection, OnGatewayDisconnec
   async handleJoinGroup(@MessageBody() data: { groupId: number }, @ConnectedSocket() client: Socket) {
     client.join(`group_${data.groupId}`);
     this.logger.log(`Client ${client.id} joined group_${data.groupId}`);
+    client.emit('joinedGroup', { groupId: data.groupId });
   }
 
   @SubscribeMessage('sendGroupMessage')
@@ -82,7 +83,14 @@ export class GroupChatGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     parsedData.groupId = Number(parsedData.groupId);
+    if (isNaN(parsedData.groupId)) {
+      this.logger.error('Invalid groupId received:', parsedData.groupId);
+      client.emit('error', { message: 'Invalid groupId' });
+      return;
+    }
+    this.logger.log(`Querying DB for group messages, groupId: ${parsedData.groupId}`);
     const messages = await this.groupChatService.getGroupMessages(parsedData.groupId);
+    this.logger.log(`Emitting groupMessagesLoaded, count: ${messages.length}`);
     client.emit('groupMessagesLoaded', messages);
   }
 }
