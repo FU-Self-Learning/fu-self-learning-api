@@ -58,10 +58,22 @@ export class GroupChatGateway implements OnGatewayConnection, OnGatewayDisconnec
     @MessageBody() data: { groupId: number; senderId: number; message: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const msg = await this.groupChatService.addMessage(data.groupId, data.senderId, data.message);
+    const msg = await this.groupChatService.addMessage(
+      data.groupId,
+      data.senderId,
+      data.message,
+    );
+
+    // Phát sự kiện realtime cho toàn bộ thành viên trong phòng
+    const groupRoom = `group_${data.groupId}`;
+    this.server.to(groupRoom).except(client.id).emit('newGroupMessage', msg);
+
+    // Gửi ACK riêng cho client gửi
+    client.emit('groupMessageSent', msg);
+
+    // (Tùy chọn) Publish Redis để hỗ trợ multi-instance
     const redisPub = this.redisService.getRedisPub();
     await redisPub.publish('group-chat', JSON.stringify(msg));
-    client.emit('groupMessageSent', msg);
   }
 
   @SubscribeMessage('loadGroupMessages')
@@ -92,5 +104,14 @@ export class GroupChatGateway implements OnGatewayConnection, OnGatewayDisconnec
     const messages = await this.groupChatService.getGroupMessages(parsedData.groupId);
     this.logger.log(`Emitting groupMessagesLoaded, count: ${messages.length}`);
     client.emit('groupMessagesLoaded', messages);
+  }
+
+  @SubscribeMessage('leaveGroup')
+  async handleLeaveGroup(
+    @MessageBody() data: { groupId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.leave(`group_${data.groupId}`);
+    this.logger.log(`Client ${client.id} left group_${data.groupId}`);
   }
 }
