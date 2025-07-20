@@ -18,4 +18,7 @@ export class GroupChat {
 
   @CreateDateColumn()
   createdAt: Date;
+  
+  @Column({ default: false })
+  isCommunity: boolean;
 }

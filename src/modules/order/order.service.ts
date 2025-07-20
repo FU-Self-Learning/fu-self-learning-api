@@ -149,13 +149,10 @@ export class OrderService {
   async createOrderWithPayment(user: User, courseId: number, amount: number): Promise<CreateOrderResponseDto> {
     try {
       const { order, orderCode } = await this.createOrder(user, courseId, amount);
-      const payOs = await this.payOsService.createPayment(amount, orderCode);
+      const payOs = await this.payOsService.createPayment(amount, orderCode, courseId);
       await this.updatePayOsOrderId(order.id, payOs.payOsOrderId);
-      
       order.payOsOrderId = payOs.payOsOrderId;
-      
       this.logger.log(`Payment created for user ${user.id}, order ${order.id}`);
-      
       const response = new CreateOrderResponseDto();
       response.success = true;
       response.order = plainToClass(OrderDto, order, { excludeExtraneousValues: true });

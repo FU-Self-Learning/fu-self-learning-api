@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param, Req } from '@nestjs/common';
 import { GroupChatService } from './group-chat.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { JwtAuthGuard } from 'src/config/jwt/jwt-auth.guard';
@@ -7,6 +7,11 @@ import { JwtAuthGuard } from 'src/config/jwt/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 export class GroupChatController {
   constructor(private readonly groupChatService: GroupChatService) {}
+
+  @Post('join-community')
+  async joinCommunityGroupChat(@Req() req, @Body('courseId') courseId: number) {
+    return this.groupChatService.joinCommunityGroupChat(req.user.id, courseId);
+  }
 
   @Post('create')
   async createGroup(@Body() dto: CreateGroupDto, @Request() req) {

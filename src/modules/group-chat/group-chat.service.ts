@@ -23,6 +23,33 @@ export class GroupChatService {
     private readonly courseRepo: Repository<Course>,
   ) {}
 
+  async joinCommunityGroupChat(userId: number, courseId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    const course = await this.courseRepo.findOneBy({ id: courseId });
+    if (!user || !course) throw new NotFoundException('User hoặc khóa học không tồn tại');
+
+    let groupChat = await this.groupChatRepo.findOne({
+      where: { course: { id: courseId }, isCommunity: true },
+      relations: ['course']
+    });
+    if (!groupChat) {
+      groupChat = this.groupChatRepo.create({
+        name: `Course ${course.title} community`,
+        course,
+        creator: user,
+        isCommunity: true
+      });
+      await this.groupChatRepo.save(groupChat);
+    }
+    const member = await this.groupMemberRepo.findOne({
+      where: { group: { id: groupChat.id }, user: { id: user.id } }
+    });
+    if (!member) {
+      await this.groupMemberRepo.save({ group: groupChat, user, role: 'member' });
+    }
+    return groupChat;
+  }
+
   async createGroup(dto: CreateGroupDto, creatorId: number) {
     const creator = await this.userRepo.findOneBy({ id: creatorId });
     const course = await this.courseRepo.findOneBy({ id: dto.courseId });
