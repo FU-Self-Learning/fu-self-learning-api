@@ -15,6 +15,7 @@ export class TestResponseDto {
   createdAt: Date;
   courseId: number;
   courseTitle: string;
+  topics?: { id: number; title: string }[];
 
   static fromEntity(test: Test): TestResponseDto {
     const dto = new TestResponseDto();
@@ -31,6 +32,7 @@ export class TestResponseDto {
     dto.createdAt = test.createdAt;
     dto.courseId = test.course?.id;
     dto.courseTitle = test.course?.title;
+    dto.topics = (test.topics || []).map((t) => ({ id: t.id, title: t.title }));
     return dto;
   }
 }
@@ -67,7 +69,7 @@ export class TestAttemptResponseDto {
 
 export class TestQuestionDto {
   id: number;
-  questionText: string;
+  question_text: string;
   choices: string[];
   timeSpent?: number;
   selectedAnswers?: string[];

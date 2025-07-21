@@ -201,13 +201,14 @@ export class TestService {
     return TestResponseDto.fromEntity(savedTest);
   }
 
-  async getTestsByCourse(courseId: number): Promise<TestResponseDto[]> {
+  async getTestsByCourse(courseId: number, isInstructor = false): Promise<TestResponseDto[]> {
+    const where: any = { course: { id: courseId } };
+    if (!isInstructor) where.isActive = true;
     const tests = await this.testRepository.find({
-      where: { course: { id: courseId }, isActive: true },
+      where,
       relations: ['course'],
       order: { createdAt: 'DESC' },
     });
-
     return tests.map((test) => TestResponseDto.fromEntity(test));
   }
 
@@ -231,10 +232,11 @@ export class TestService {
     // Lấy câu hỏi (ẩn đáp án đúng)
     dto.questions = test.questions.map((q) => ({
       id: q.id,
-      questionText: q.question_text,
+      question_text: q.question_text,
       choices: test.shuffleAnswers
         ? this.shuffleArray([...q.choices])
         : q.choices,
+      correct_answer: q.correct_answer,
     }));
 
     // Kiểm tra attempt hiện tại
@@ -482,6 +484,14 @@ export class TestService {
     };
 
     return progressDto;
+  }
+
+  async toggleStatus(id: number): Promise<TestResponseDto> {
+    const test = await this.testRepository.findOne({ where: { id } });
+    if (!test) throw new Error('Test not found');
+    test.isActive = !test.isActive;
+    await this.testRepository.save(test);
+    return TestResponseDto.fromEntity(test);
   }
 
   private checkAnswer(

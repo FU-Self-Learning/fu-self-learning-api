@@ -6,6 +6,7 @@ import {
   Param,
   UseGuards,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { TestService } from './test.service';
 import { JwtAuthGuard } from 'src/config/jwt/jwt-auth.guard';
@@ -50,9 +51,16 @@ export class TestController {
     return this.testService.createTestWithQuestions(createTestWithQuestionsDto, Number(instructor.id));
   }
 
+  @Get('course/:courseId/instructor')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Instructor, Role.Admin)
+  async getTestsByCourseForInstructor(@Param('courseId') courseId: number): Promise<TestResponseDto[]> {
+    return this.testService.getTestsByCourse(courseId, true);
+  }
+
   @Get('course/:courseId')
   async getTestsByCourse(@Param('courseId') courseId: number): Promise<TestResponseDto[]> {
-    return this.testService.getTestsByCourse(courseId);
+    return this.testService.getTestsByCourse(courseId, false);
   }
 
   @Get('result/:testId')
@@ -111,5 +119,12 @@ export class TestController {
     @GetUser() user: any,
   ): Promise<TestAttemptProgressDto> {
     return this.testService.getAttemptProgress(attemptId, user.id);
+  }
+
+  @Patch(':id/toggle-status')
+  @UseGuards(RolesGuard)
+  @Roles(Role.Instructor, Role.Admin)
+  async toggleStatus(@Param('id') id: number) {
+    return this.testService.toggleStatus(id);
   }
 } 
