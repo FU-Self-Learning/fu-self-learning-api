@@ -2,19 +2,26 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ChatOpenAI } from '@langchain/openai';
 import { RunnableSequence } from '@langchain/core/runnables';
 import { PromptTemplate } from '@langchain/core/prompts';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Topic } from 'src/entities/topic.entity';
 import { Course } from 'src/entities/course.entity';
 import { CourseService } from '../course/course.service';
 import { TopicService } from '../topic/topic.service';
+import { GeminiService } from './gemini.service';
 
 @Injectable()
 export class AiAgentService {
+  public readonly geminiService: GeminiService;
+  public readonly topicRepository: Repository<Topic>;
   private openAIModel: ChatOpenAI;
   private chain: RunnableSequence;
   private courseService: CourseService;
   private topicService: TopicService;
 
-  constructor() {
+  constructor(geminiService: GeminiService, @InjectRepository(Topic) topicRepository: Repository<Topic>) {
+    this.geminiService = geminiService;
+    this.topicRepository = topicRepository;
     this.openAIModel = new ChatOpenAI({
       modelName: 'gpt-4o-mini',
       temperature: 0.7,

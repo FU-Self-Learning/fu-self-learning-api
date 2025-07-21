@@ -26,6 +26,7 @@ import {
   SubmitAnswerDto,
   CompleteTestDto,
 } from './dto';
+import { GeminiService } from '../ai-agent/gemini.service';
 
 @Injectable()
 export class TestService {
@@ -43,6 +44,7 @@ export class TestService {
     @InjectRepository(QuizQuestion)
     private quizQuestionRepository: Repository<QuizQuestion>,
     private quizQuestionService: QuizQuestionService,
+    private readonly geminiService: GeminiService,
   ) {}
 
   async createTest(
@@ -161,14 +163,24 @@ export class TestService {
     }
 
     // TODO: Tích hợp AI để tự động tạo câu hỏi
-    if (createTestWithQuestionsDto.autoGenerate && createTestWithQuestionsDto.autoGenerateCount) {
-      // Placeholder cho AI generation
-      // const aiQuestions = await this.generateQuestionsWithAI(
-      //   createTestWithQuestionsDto.autoGeneratePrompt,
-      //   createTestWithQuestionsDto.autoGenerateCount,
-      //   createTestWithQuestionsDto.topicIds
-      // );
-      // createdQuestions = [...createdQuestions, ...aiQuestions];
+    if (createTestWithQuestionsDto.autoGenerate && createTestWithQuestionsDto.autoGenerateCount && createTestWithQuestionsDto.topicIds?.length) {
+      // Lấy thông tin topic để lấy tên topic làm prompt
+      const topics = await this.topicRepository.findBy({ id: In(createTestWithQuestionsDto.topicIds) });
+      const total = createTestWithQuestionsDto.autoGenerateCount;
+      const base = Math.floor(total / topics.length);
+      let remainder = total % topics.length;
+      for (const topic of topics) {
+        let count = base + (remainder > 0 ? 1 : 0);
+        if (remainder > 0) remainder--;
+        const aiQuestionsRaw = await this.geminiService.generateQuestions(
+          topic.title,
+          topic.id,
+          count
+        );
+        // Lưu vào DB và lấy về QuizQuestion entity
+        const aiQuestions = await this.quizQuestionService.createMany(aiQuestionsRaw);
+        createdQuestions = [...createdQuestions, ...aiQuestions];
+      }
     }
 
     // Nếu không có câu hỏi mới được tạo, auto-select từ topics

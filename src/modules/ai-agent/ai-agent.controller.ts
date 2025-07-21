@@ -6,6 +6,7 @@ import {
   BadRequestException,
   UseGuards,
   Request,
+  Body,
 } from '@nestjs/common';
 import { AiAgentService } from './ai-agent.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -38,5 +39,28 @@ export class AiAgentController {
         description: 'File is missing or invalid',
       });
     }
+  }
+
+  @Post('generate-questions')
+  @UseGuards(JwtAuthGuard)
+  async generateQuestions(@Body() body: { topicId: number; topicTitle: string; count: number }) {
+    // Gọi GeminiService để generate câu hỏi
+    const { topicId, topicTitle, count } = body;
+    // Lấy GeminiService từ module (hoặc inject nếu cần)
+    const geminiService = (this.aiAgentService as any).geminiService || (global as any).geminiService;
+    if (!geminiService) throw new Error('GeminiService not available');
+    const questions = await geminiService.generateQuestions(topicTitle, topicId, count);
+    return questions;
+  }
+
+  @Post('generate-questions-by-topic')
+  @UseGuards(JwtAuthGuard)
+  async generateQuestionsByTopic(@Body() body: { topicId: number; count: number }) {
+    const { topicId, count } = body;
+    // Lấy title topic từ DB
+    const topic = await this.aiAgentService['topicRepository'].findOne({ where: { id: topicId } });
+    if (!topic) throw new Error('Topic not found');
+    const questions = await this.aiAgentService.geminiService.generateQuestions(topic.title, topicId, count);
+    return questions;
   }
 }

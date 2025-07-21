@@ -9,6 +9,7 @@ import { Course } from 'src/entities/course.entity';
 import { Topic } from 'src/entities/topic.entity';
 import { QuizQuestion } from 'src/entities/quiz-question.entity';
 import { QuizQuestionModule } from '../quiz-question/quiz-question.module';
+import { AiAgentModule } from '../ai-agent/ai-agent.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { QuizQuestionModule } from '../quiz-question/quiz-question.module';
       QuizQuestion,
     ]),
     QuizQuestionModule,
+    AiAgentModule,
   ],
   controllers: [TestController],
   providers: [TestService],

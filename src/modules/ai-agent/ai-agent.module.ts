@@ -11,7 +11,15 @@ import { Category } from 'src/entities/category.entity';
 @Module({
   imports: [TypeOrmModule.forFeature([Topic, QuizQuestion, Category])],
   controllers: [AiAgentController],
-  providers: [AiAgentService, GeminiService, PdfService],
+  providers: [
+    {
+      provide: AiAgentService,
+      useFactory: (geminiService: GeminiService, topicRepository) => new AiAgentService(geminiService, topicRepository),
+      inject: [GeminiService, 'TopicRepository'],
+    },
+    GeminiService,
+    PdfService,
+  ],
   exports: [AiAgentService, GeminiService],
 })
 export class AiAgentModule {}
