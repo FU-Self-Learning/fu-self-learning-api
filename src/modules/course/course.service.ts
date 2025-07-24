@@ -69,7 +69,7 @@ export class CourseService {
 
   async findAll(): Promise<Course[]> {
     return this.courseRepository.find({
-      relations: ['instructor', 'topics'],
+      relations: ['categories', 'instructor', 'topics'],
     });
   }
 

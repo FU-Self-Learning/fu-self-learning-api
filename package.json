@@ -21,7 +21,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
     "@langchain/core": "^0.3.55",
+    "@langchain/groq": "^0.2.3",
     "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.1.0",
     "@nestjs/config": "^4.0.2",
@@ -34,7 +36,6 @@
     "@nestjs/typeorm": "^11.0.0",
     "@nestjs/websockets": "^11.1.2",
     "@payos/node": "^1.0.10",
-    "@google/generative-ai": "^0.21.0",
     "@types/cookie-parser": "^1.4.8",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",

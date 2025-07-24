@@ -4,4 +4,7 @@ export class ChatMessageDto {
   @IsString()
   @IsNotEmpty()
   message: string;
+
+  @IsString()
+  sessionId?: string;
 }
