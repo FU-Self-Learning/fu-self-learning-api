@@ -33,7 +33,7 @@ export class GrokService implements OnModuleInit {
         `${this.apiUrl}/chat/completions`,
         {
           messages: [{ role: 'user', content: message }],
-          model: 'grok-1',
+          model: 'grok-3-mini',
         },
         {
           headers: {

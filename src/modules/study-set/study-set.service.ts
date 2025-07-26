@@ -12,6 +12,9 @@ import { CreateStudySetDto } from './dto/create-study-set.dto';
 import { UpdateStudySetDto } from './dto/update-study-set.dto';
 import { ResponseStudySetDto } from './dto/response-study-set.dto';
 import { plainToInstance } from 'class-transformer';
+import { CreateStudySetEmptyDto } from './dto/create-study-set-empty.dto';
+import { AddFlashcardsManualDto } from './dto/create-study-set-empty.dto';
+import { UpdateFlashcardDto } from '../flashcards/dto/update-flashcard.dto';
 
 @Injectable()
 export class StudySetService {
@@ -28,29 +31,15 @@ export class StudySetService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    let flashcards: Flashcard[] = [];
-    if (dto.type === 'course') {
-      // Từ 1 course
-      flashcards = await this.flashcardRepo.find({
-        where: { course: { id: dto.courseId } },
-        relations: ['course', 'topic', 'lesson'],
+    const newFlashcards = dto.flashcards.map((flashcardData) => {
+      const flashcard = this.flashcardRepo.create({
+        front_text: flashcardData.front_text,
+        back_text: flashcardData.back_text,
+        generation_source: flashcardData.generation_source || 'manual',
+        is_auto_generated: false,
       });
-    } else if (dto.type === 'multi-course') {
-      const allFlashcards = await this.flashcardRepo.find({
-        where: { course: { id: In(dto.courseIds || []) } },
-        relations: ['course', 'topic', 'lesson'],
-      });
-      flashcards = this.shuffleArray(allFlashcards).slice(0, dto.limit || 20);
-    } else if (dto.type === 'random') {
-      const allFlashcards = await this.flashcardRepo.find();
-      flashcards = this.shuffleArray(allFlashcards).slice(0, dto.limit || 20);
-    } else if (dto.type === 'custom') {
-      flashcards = await this.flashcardRepo.find({
-        where: { id: In(dto.flashcardIds || []) },
-      });
-    } else {
-      throw new BadRequestException('Invalid study set type');
-    }
+      return flashcard;
+    });
 
     const studySet = this.studySetRepo.create({
       name: dto.name,
@@ -58,9 +47,68 @@ export class StudySetService {
       tags: dto.tags,
       isPublic: dto.isPublic,
       user,
-      flashcards,
+      flashcards: newFlashcards,
     });
     return this.studySetRepo.save(studySet);
+  }
+
+  async createEmpty(
+    userId: number,
+    dto: CreateStudySetEmptyDto,
+  ): Promise<StudySet> {
+    const user = await this.userRepo.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    const studySet = this.studySetRepo.create({
+      name: dto.name,
+      description: dto.description,
+      tags: dto.tags,
+      isPublic: dto.isPublic,
+      user,
+    });
+    return this.studySetRepo.save(studySet);
+  }
+
+  async addFlashcardsManual(
+    studySetId: number,
+    userId: number,
+    dto: AddFlashcardsManualDto,
+  ): Promise<StudySet> {
+    // Find the study set and verify ownership
+    const studySet = await this.studySetRepo.findOne({
+      where: { id: studySetId, user: { id: userId } },
+      relations: ['flashcards'],
+    });
+
+    if (!studySet) {
+      throw new NotFoundException('Study set not found');
+    }
+
+    // Create new flashcards from the provided data
+    const newFlashcards = dto.flashcards.map((flashcardData) => {
+      const flashcard = this.flashcardRepo.create({
+        front_text: flashcardData.front_text,
+        back_text: flashcardData.back_text,
+        generation_source: flashcardData.generation_source || 'manual',
+        is_auto_generated: false,
+        studySet: studySet,
+      });
+      return flashcard;
+    });
+
+    // Save all new flashcards
+    await this.flashcardRepo.save(newFlashcards);
+
+    // Return the updated study set with all flashcards
+    const updatedStudySet = await this.studySetRepo.findOne({
+      where: { id: studySetId },
+      relations: ['flashcards'],
+    });
+
+    if (!updatedStudySet) {
+      throw new NotFoundException('Study set not found after update');
+    }
+
+    return updatedStudySet;
   }
 
   async findAllByUser(userId: number): Promise<ResponseStudySetDto[]> {
@@ -98,10 +146,40 @@ export class StudySetService {
     await this.studySetRepo.remove(studySet);
   }
 
-  private shuffleArray<T>(array: T[]): T[] {
-    return array
-      .map((a) => [Math.random(), a] as [number, T])
-      .sort((a, b) => a[0] - b[0])
-      .map((a) => a[1]);
+  async replaceFlashcards(
+    studySetId: number,
+    userId: number,
+    dto: { flashcards: UpdateFlashcardDto[] },
+  ): Promise<StudySet> {
+    const studySet = await this.studySetRepo.findOne({
+      where: { id: studySetId, user: { id: userId } },
+      relations: ['flashcards'],
+    });
+
+    if (!studySet) throw new NotFoundException('Study set not found');
+
+    if (studySet.flashcards.length > 0) {
+      const oldFlashcardIds = studySet.flashcards.map((f) => f.id);
+      await this.flashcardRepo.delete({ id: In(oldFlashcardIds) });
+    }
+
+    const newFlashcards = dto.flashcards.map((fc) =>
+      this.flashcardRepo.create({
+        front_text: fc.front_text,
+        back_text: fc.back_text,
+        generation_source: fc.generation_source || 'manual',
+        is_auto_generated: false,
+        studySet: studySet,
+      }),
+    );
+
+    await this.flashcardRepo.save(newFlashcards);
+
+    const updatedStudySet = await this.studySetRepo.findOne({
+      where: { id: studySetId },
+      relations: ['flashcards'],
+    });
+
+    return updatedStudySet!;
   }
 }

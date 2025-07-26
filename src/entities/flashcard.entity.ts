@@ -9,6 +9,7 @@ import {
 import { Topic } from './topic.entity';
 import { Lesson } from './lesson.entity';
 import { Course } from './course.entity';
+import { StudySet } from './study-set.entity';
 
 @Entity('flashcards')
 export class Flashcard {
@@ -35,6 +36,9 @@ export class Flashcard {
 
   @Column({ nullable: true })
   generation_source: string; // 'lesson', 'topic', 'course'
+
+  @ManyToOne(() => StudySet, (studySet) => studySet.flashcards, { nullable: true })
+  studySet: StudySet;
 
   @CreateDateColumn()
   created_at: Date;

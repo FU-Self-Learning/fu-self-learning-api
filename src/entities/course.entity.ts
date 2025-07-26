@@ -14,6 +14,7 @@ import { Topic } from './topic.entity';
 import { CommentCourse } from './comment-course.entity';
 import { Category } from './category.entity';
 import { Flashcard } from './flashcard.entity';
+import { Test } from './test.entity';
 
 @Entity('courses')
 export class Course {
@@ -56,6 +57,9 @@ export class Course {
 
   @OneToMany(() => Flashcard, (flashcard) => flashcard.course)
   flashcards: Flashcard[];
+
+  @OneToMany(() => Test, (test) => test.course)
+  tests: Test[];
 
   @CreateDateColumn()
   createdAt: Date;

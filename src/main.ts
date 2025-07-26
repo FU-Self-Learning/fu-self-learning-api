@@ -28,6 +28,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // Quay lỗi nếu có thuộc tính không hợp lệ
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 8080);
 }
 bootstrap();

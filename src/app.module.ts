@@ -27,6 +27,9 @@ import { OrderModule } from './modules/order/order.module';
 import { StudySetModule } from './modules/study-set/study-set.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { PostLikeModule } from './modules/post-like/post-like.module';
+import { TestModule } from './modules/test/test.module';
+import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -66,6 +69,8 @@ import { PostLikeModule } from './modules/post-like/post-like.module';
     EnrollmentModule,
     GroupChatModule,
     PostLikeModule,
+    TestModule,
+    QuizQuestionModule,
   ],
   controllers: [AppController],
   providers: [

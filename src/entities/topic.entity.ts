@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Course } from './course.entity';
 import { Flashcard } from './flashcard.entity';
@@ -13,6 +14,7 @@ import { AIContentRequest } from './ai-content-request.entity';
 import { StudySession } from './study-session.entity';
 import { QuizQuestion } from './quiz-question.entity';
 import { Lesson } from './lesson.entity';
+import { Test } from './test.entity';
 
 @Entity('topics')
 export class Topic {
@@ -36,6 +38,9 @@ export class Topic {
 
   @OneToMany(() => QuizQuestion, (quizQuestion) => quizQuestion.topic)
   quizQuestions: QuizQuestion[];
+
+  @ManyToMany(() => Test, (test) => test.topics)
+  tests: Test[];
 
   @Column()
   title: string;

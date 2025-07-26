@@ -71,6 +71,31 @@ export class GeminiService {
     }
   }
 
+  async generateQuestions(prompt: string, topicId: number, count: number): Promise<Array<{question_text: string, correct_answer: string[], choices: string[], topicId: number}>> {
+    try {
+      const fullPrompt = `Generate ${count} multiple-choice questions (with 1-4 correct answers each) about the topic: "${prompt}". 
+Topic ID: ${topicId}.
+Return a JSON array, each item has: question_text (string), correct_answer (array of string), choices (array of string), topicId (number, always ${topicId}).
+Example:
+[
+  {"question_text": "...", "correct_answer": ["..."], "choices": ["...", "...", "...", "..."], "topicId": ${topicId}}
+]`;
+      const result = await this.model.generateContent(fullPrompt);
+      const response = await result.response;
+      const text = response.text();
+      // Parse the AI response
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error('No valid JSON array found in AI response');
+      const questions = JSON.parse(jsonMatch[0]);
+      // Validate structure
+      if (!Array.isArray(questions)) throw new Error('Response is not an array');
+      return questions.filter(q => q && typeof q.question_text === 'string' && Array.isArray(q.correct_answer) && Array.isArray(q.choices) && typeof q.topicId === 'number');
+    } catch (error) {
+      this.logger.error('Error generating questions:', error);
+      return [];
+    }
+  }
+
   private buildAnalysisPrompt(pdfText: string, categoryList: string): string {
     return `
       You are an expert course designer. Analyze the following PDF content and create a structured course outline.

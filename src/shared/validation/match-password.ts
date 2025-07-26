@@ -15,3 +15,18 @@ export class MatchPassword implements ValidatorConstraintInterface {
     return 'Passwords do not match!';
   }
 }
+
+@ValidatorConstraint({ name: 'RequirePasswordIfNotPublic', async: false })
+export class RequirePasswordIfNotPublic implements ValidatorConstraintInterface {
+  validate(password: string, args: ValidationArguments) {
+    const isPublic = (args.object as any).isPublic;
+    if (isPublic === false) {
+      return typeof password === 'string' && password.trim().length > 0;
+    }
+    return true;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Password is required when the study set is not public.';
+  }
+}
