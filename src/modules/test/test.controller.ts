@@ -24,6 +24,7 @@ import {
   TestAttemptResponseDto,
   TestAttemptProgressDto,
   TestDetailDto,
+  TestResultDetailDto,
 } from './dto';
 
 @Controller('tests')
@@ -119,6 +120,14 @@ export class TestController {
     @GetUser() user: any,
   ): Promise<TestAttemptProgressDto> {
     return this.testService.getAttemptProgress(attemptId, user.id);
+  }
+
+  @Get('result/:attemptId/detail')
+  async getTestResultDetail(
+    @Param('attemptId') attemptId: number,
+    @GetUser() user: any,
+  ): Promise<TestResultDetailDto> {
+    return this.testService.getTestResultDetail(attemptId, user.id);
   }
 
   @Patch(':id/toggle-status')

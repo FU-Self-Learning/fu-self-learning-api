@@ -25,6 +25,8 @@ import {
   StartTestDto,
   SubmitAnswerDto,
   CompleteTestDto,
+  TestResultDetailDto,
+  TestAnswerDetailDto,
 } from './dto';
 import { GeminiService } from '../ai-agent/gemini.service';
 
@@ -484,6 +486,40 @@ export class TestService {
     };
 
     return progressDto;
+  }
+
+  async getTestResultDetail(attemptId: number, userId: number): Promise<TestResultDetailDto> {
+    const attempt = await this.testAttemptRepository.findOne({
+      where: { id: attemptId, user: { id: userId } },
+      relations: ['test', 'answers', 'answers.question'],
+    });
+
+    if (!attempt) {
+      throw new NotFoundException('Test attempt not found');
+    }
+
+    if (attempt.status !== AttemptStatus.COMPLETED) {
+      throw new BadRequestException('Test attempt is not completed');
+    }
+
+    // Lấy thông tin chi tiết các câu trả lời
+    const answers: TestAnswerDetailDto[] = attempt.answers.map(answer => ({
+      id: answer.id,
+      questionId: answer.question.id,
+      questionText: answer.question.question_text,
+      choices: answer.question.choices,
+      correctAnswer: answer.question.correct_answer,
+      selectedAnswers: answer.selectedAnswers,
+      isCorrect: answer.isCorrect,
+      timeSpent: answer.timeSpent || 0,
+      answeredAt: answer.answeredAt,
+    }));
+
+    const resultDetail = new TestResultDetailDto();
+    Object.assign(resultDetail, TestAttemptResponseDto.fromEntity(attempt));
+    resultDetail.answers = answers;
+
+    return resultDetail;
   }
 
   async toggleStatus(id: number): Promise<TestResponseDto> {

@@ -78,4 +78,20 @@ export class TestQuestionDto {
 export class TestDetailDto extends TestResponseDto {
   questions: TestQuestionDto[];
   currentAttempt?: TestAttemptResponseDto;
+}
+
+export class TestAnswerDetailDto {
+  id: number;
+  questionId: number;
+  questionText: string;
+  choices: string[];
+  correctAnswer: string[];
+  selectedAnswers: string[];
+  isCorrect: boolean;
+  timeSpent: number;
+  answeredAt: Date;
+}
+
+export class TestResultDetailDto extends TestAttemptResponseDto {
+  answers: TestAnswerDetailDto[];
 } 
