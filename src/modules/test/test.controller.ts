@@ -26,11 +26,15 @@ import {
   TestDetailDto,
   TestResultDetailDto,
 } from './dto';
+import { GeminiService } from '../ai-agent/gemini.service';
 
 @Controller('tests')
 @UseGuards(JwtAuthGuard)
 export class TestController {
-  constructor(private readonly testService: TestService) {}
+  constructor(
+    private readonly testService: TestService,
+    private readonly geminiService: GeminiService,
+  ) {}
 
   @Post()
   @UseGuards(RolesGuard)
@@ -135,5 +139,28 @@ export class TestController {
   @Roles(Role.Instructor, Role.Admin)
   async toggleStatus(@Param('id') id: number) {
     return this.testService.toggleStatus(id);
+  }
+
+  @Post('explain-answer')
+  @UseGuards(JwtAuthGuard)
+  async explainAnswer(
+    @Body() body: {
+      questionText: string;
+      choices: string[];
+      correctAnswers: string[];
+      selectedAnswers: string[];
+      isCorrect: boolean;
+      topicContext?: string;
+    },
+    @GetUser() user: any,
+  ) {
+    return await this.geminiService.explainAnswer(
+      body.questionText,
+      body.choices,
+      body.correctAnswers,
+      body.selectedAnswers,
+      body.isCorrect,
+      body.topicContext,
+    );
   }
 } 
