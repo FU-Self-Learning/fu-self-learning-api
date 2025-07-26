@@ -17,6 +17,7 @@ import { StudySession } from './study-session.entity';
 import { QuizResult } from './quiz-result.entity';
 import { CommentPost } from './comment-post.entity';
 import { StudySet } from './study-set.entity';
+import { PostLike } from './post-like.entity';
 
 @Entity('users')
 export class User {
@@ -52,6 +53,9 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.user)
   posts: Post[];
+
+  @OneToMany(() => PostLike, (like) => like.user)
+  postLikes: PostLike[];
 
   @OneToMany(
     () => AIContentRequest,

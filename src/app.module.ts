@@ -26,6 +26,7 @@ import { InstructorRequestModule } from './modules/instructor-request/instructor
 import { OrderModule } from './modules/order/order.module';
 import { StudySetModule } from './modules/study-set/study-set.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { PostLikeModule } from './modules/post-like/post-like.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -64,6 +65,7 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
     StudySetModule,
     EnrollmentModule,
     GroupChatModule,
+    PostLikeModule,
   ],
   controllers: [AppController],
   providers: [
