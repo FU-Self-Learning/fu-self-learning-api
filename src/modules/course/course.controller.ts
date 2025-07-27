@@ -158,7 +158,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  @Roles(Role.Student, Role.Instructor)
+  @Roles(Role.Student, Role.Instructor, Role.Admin)
   findOne(
     @Param('id') id: string,
     @Request() _req: CustomRequest,
