@@ -6,6 +6,7 @@ import { AdminController } from './admin.controller';
 import { UsersModule } from '../users/users.module';
 import { CourseModule } from '../course/course.module';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { OrderModule } from '../order/order.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { EnrollmentModule } from '../enrollment/enrollment.module';
     UsersModule,
     CourseModule,
     EnrollmentModule,
+    OrderModule,
   ],
   providers: [],
   controllers: [AdminController],

@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { Not, Repository } from 'typeorm';
+import { Between, Not, Repository } from 'typeorm';
 import { RegisterDto } from '../auth/dto/register.dto';
 import { UpdateProfileDto } from './dto/update-profile-dto';
 import { UpdateForgotPasswordUserDto } from './dto/update-forgot-password';
@@ -28,6 +28,17 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.usersRepository.find();
+  }
+
+  async findUsersByDateRange(startDate: Date, endDate: Date): Promise<User[]> {
+    return this.usersRepository.find({
+      where: {
+        createdAt: Between(startDate, endDate)
+      },
+      order: {
+        createdAt: 'ASC'
+      }
+    });
   }
 
   async findUserById(id: number): Promise<User | null> {

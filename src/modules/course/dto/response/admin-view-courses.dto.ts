@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { CourseStatus } from 'src/common/enums/course-status.enum';
 
 class _InstructorDto {
   @Expose()
@@ -36,7 +37,7 @@ export class AdminViewCourseDto {
   updatedAt: Date;
 
   @Expose()
-  isActive: boolean;
+  status: CourseStatus;
 
   @Expose()
   @Type(() => _InstructorDto)
