@@ -213,6 +213,12 @@ export class CourseController {
     return this.courseService.banCourse(+id);
   }
 
+  @Patch(':id/reject')
+  @Roles(Role.Admin)
+  async rejectCourse(@Param('id') id: string, @Request() req) {
+    return this.courseService.rejectCourse(+id, 'Course is already rejected');
+  }
+
   @Delete(':id')
   @Roles(Role.Instructor, Role.Admin)
   remove(@Param('id') id: string, @Request() _req) {

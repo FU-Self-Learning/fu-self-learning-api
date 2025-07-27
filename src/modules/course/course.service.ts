@@ -1,5 +1,6 @@
 
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { CourseStatus } from 'src/common/enums/course-status.enum';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Course } from '../../entities/course.entity';
@@ -29,14 +30,18 @@ export class CourseService {
   ) {}
   
   async banCourse(id: number): Promise<Course> {
+    return this.rejectCourse(id, 'Course is already rejected');
+  }
+
+  async rejectCourse(id: number, customMessage?: string): Promise<Course> {
     const course = await this.courseRepository.findOne({ where: { id } });
     if (!course) {
       throw new BadRequestException('Course not found');
     }
-    if (!course.isActive) {
-      throw new BadRequestException('Course is already banned');
+    if (course.status === CourseStatus.REJECTED) {
+      throw new BadRequestException(customMessage || 'Course is already rejected');
     }
-    course.isActive = false;
+    course.status = CourseStatus.REJECTED;
     await this.courseRepository.save(course);
     return course;
   }
@@ -86,10 +91,10 @@ export class CourseService {
       if (!course) {
         throw new BadRequestException('Course not found');
       }
-      if (course.isActive) {
-        throw new BadRequestException('Course is already approved');
+      if (course.status === CourseStatus.ACTIVE) {
+        throw new BadRequestException('Course is already active');
       }
-      course.isActive = true;
+      course.status = CourseStatus.ACTIVE;
       await this.courseRepository.save(course);
       return course;
     }

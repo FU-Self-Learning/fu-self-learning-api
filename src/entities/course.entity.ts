@@ -16,6 +16,7 @@ import { Category } from './category.entity';
 import { Flashcard } from './flashcard.entity';
 import { Test } from './test.entity';
 import { CourseCertificate } from './course-certificate.entity';
+import { CourseStatus } from 'src/common/enums/course-status.enum';
 
 @Entity('courses')
 export class Course {
@@ -46,8 +47,12 @@ export class Course {
   @Column({ nullable: true })
   documentUrl: string;
 
-  @Column({ default: false })
-  isActive: boolean;
+  @Column({
+    type: 'enum',
+    enum: CourseStatus,
+    default: CourseStatus.INACTIVE
+  })
+  status: CourseStatus;
   
   @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.course)
   comments: CommentCourse[];
