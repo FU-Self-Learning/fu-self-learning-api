@@ -16,8 +16,8 @@ import { TestAttempt } from './test-attempt.entity';
 
 export enum TestType {
   PRACTICE = 'practice',
-  FINAL = 'final',
-  MIDTERM = 'midterm',
+  TOPIC_EXAM = 'topic_exam',
+  FINAL_EXAM = 'final_exam',
 }
 
 @Entity('tests')
@@ -33,6 +33,9 @@ export class Test {
 
   @ManyToOne(() => Course, (course) => course.tests)
   course: Course;
+
+  @ManyToOne(() => Topic, (topic) => topic.tests, { nullable: true })
+  topic: Topic; // For Topic Exam, link to specific topic
 
   @ManyToMany(() => Topic, (topic) => topic.tests)
   @JoinTable()
@@ -65,6 +68,12 @@ export class Test {
 
   @Column({ default: false }) // có trộn đáp án không
   shuffleAnswers: boolean;
+
+  @Column({ default: false }) // có yêu cầu hoàn thành video trước khi làm bài không
+  requireVideoCompletion: boolean;
+
+  @Column({ default: 0 }) // thứ tự hiển thị
+  order: number;
 
   @CreateDateColumn()
   createdAt: Date;

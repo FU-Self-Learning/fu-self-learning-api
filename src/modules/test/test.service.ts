@@ -14,9 +14,12 @@ import { Topic } from 'src/entities/topic.entity';
 import { QuizQuestion } from 'src/entities/quiz-question.entity';
 import { User } from 'src/entities/user.entity';
 import { QuizQuestionService } from '../quiz-question/quiz-question.service';
+import { VideoProgressService } from '../video-progress/video-progress.service';
 import {
   CreateTestDto,
   CreateTestWithQuestionsDto,
+  CreateTopicExamDto,
+  CreateFinalExamDto,
   TestResponseDto,
   TestDetailDto,
   TestAttemptResponseDto,
@@ -27,6 +30,10 @@ import {
   CompleteTestDto,
   TestResultDetailDto,
   TestAnswerDetailDto,
+  TopicExamResponseDto,
+  FinalExamResponseDto,
+  CourseProgressDto,
+  TopicProgressDto,
 } from './dto';
 import { GeminiService } from '../ai-agent/gemini.service';
 
@@ -46,6 +53,7 @@ export class TestService {
     @InjectRepository(QuizQuestion)
     private quizQuestionRepository: Repository<QuizQuestion>,
     private quizQuestionService: QuizQuestionService,
+    private videoProgressService: VideoProgressService,
     private readonly geminiService: GeminiService,
   ) {}
 
@@ -194,6 +202,206 @@ export class TestService {
         .orderBy('RANDOM()')
         .getMany();
       createdQuestions = existingQuestions;
+    }
+
+    test.questions = createdQuestions;
+    test.questionCount = createdQuestions.length;
+
+    const savedTest = await this.testRepository.save(test);
+    return TestResponseDto.fromEntity(savedTest);
+  }
+
+  async createTopicExam(
+    createTopicExamDto: CreateTopicExamDto,
+    instructorId: number,
+  ): Promise<TestResponseDto> {
+    // Kiểm tra course tồn tại và instructor có quyền
+    const course = await this.courseRepository.findOne({
+      where: { id: createTopicExamDto.courseId },
+      relations: ['instructor'],
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.instructor.id !== instructorId) {
+      throw new ForbiddenException('You can only create tests for your own courses');
+    }
+
+    // Kiểm tra topic tồn tại và thuộc về course
+    const topic = await this.topicRepository.findOne({
+      where: { id: createTopicExamDto.topicId, course: { id: course.id } },
+    });
+
+    if (!topic) {
+      throw new NotFoundException('Topic not found or does not belong to this course');
+    }
+
+    // Kiểm tra xem topic này đã có exam chưa
+    const existingTopicExam = await this.testRepository.findOne({
+      where: { topic: { id: createTopicExamDto.topicId }, type: TestType.TOPIC_EXAM },
+    });
+
+    if (existingTopicExam) {
+      throw new BadRequestException('This topic already has an exam');
+    }
+
+    // Tạo topic exam mới
+    const test = new Test();
+    test.title = createTopicExamDto.title;
+    test.description = createTopicExamDto.description || '';
+    test.course = course;
+    test.topic = topic; // Link to specific topic
+    test.type = TestType.TOPIC_EXAM;
+    test.duration = createTopicExamDto.duration || 30;
+    test.passingScore = createTopicExamDto.passingScore || 70;
+    test.shuffleQuestions = createTopicExamDto.shuffleQuestions || false;
+    test.shuffleAnswers = createTopicExamDto.shuffleAnswers || false;
+    test.requireVideoCompletion = createTopicExamDto.requireVideoCompletion ?? true; // Default true for topic exams
+
+    let createdQuestions: QuizQuestion[] = [];
+
+    // Tạo câu hỏi thủ công nếu có
+    if (createTopicExamDto.questions?.length) {
+      const questionDtos = createTopicExamDto.questions.map(q => ({
+        question_text: q.question_text,
+        correct_answer: q.correct_answer,
+        choices: q.choices,
+        topicId: q.topicId,
+      }));
+      
+      createdQuestions = await this.quizQuestionService.createMany(questionDtos);
+    }
+
+    // Auto-generate questions using AI
+    if (createTopicExamDto.autoGenerate && createTopicExamDto.autoGenerateCount) {
+      const aiQuestionsRaw = await this.geminiService.generateQuestions(
+        topic.title,
+        topic.id,
+        createTopicExamDto.autoGenerateCount
+      );
+      const aiQuestions = await this.quizQuestionService.createMany(aiQuestionsRaw);
+      createdQuestions = [...createdQuestions, ...aiQuestions];
+    }
+
+    // Nếu không có câu hỏi mới được tạo, auto-select từ topic
+    if (createdQuestions.length === 0) {
+      const existingQuestions = await this.quizQuestionRepository
+        .createQueryBuilder('q')
+        .where('q.topicId = :topicId', { topicId: createTopicExamDto.topicId })
+        .limit(10) // default limit
+        .orderBy('RANDOM()')
+        .getMany();
+      createdQuestions = existingQuestions;
+    }
+
+    test.questions = createdQuestions;
+    test.questionCount = createdQuestions.length;
+
+    const savedTest = await this.testRepository.save(test);
+    return TestResponseDto.fromEntity(savedTest);
+  }
+
+  async createFinalExam(
+    createFinalExamDto: CreateFinalExamDto,
+    instructorId: number,
+  ): Promise<TestResponseDto> {
+    // Kiểm tra course tồn tại và instructor có quyền
+    const course = await this.courseRepository.findOne({
+      where: { id: createFinalExamDto.courseId },
+      relations: ['instructor'],
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    if (course.instructor.id !== instructorId) {
+      throw new ForbiddenException('You can only create tests for your own courses');
+    }
+
+    // Kiểm tra xem course này đã có final exam chưa
+    const existingFinalExam = await this.testRepository.findOne({
+      where: { course: { id: createFinalExamDto.courseId }, type: TestType.FINAL_EXAM },
+    });
+
+    if (existingFinalExam) {
+      throw new BadRequestException('This course already has a final exam');
+    }
+
+    // Tạo final exam mới
+    const test = new Test();
+    test.title = createFinalExamDto.title;
+    test.description = createFinalExamDto.description || '';
+    test.course = course;
+    test.type = TestType.FINAL_EXAM;
+    test.duration = createFinalExamDto.duration || 120;
+    test.passingScore = createFinalExamDto.passingScore || 80;
+    test.shuffleQuestions = createFinalExamDto.shuffleQuestions || false;
+    test.shuffleAnswers = createFinalExamDto.shuffleAnswers || false;
+    test.requireVideoCompletion = createFinalExamDto.requireAllTopicExamsCompleted ?? true; // Default true for final exams
+
+    // Thêm topics nếu có
+    if (createFinalExamDto.topicIds?.length) {
+      const topics = await this.topicRepository.findBy({
+        id: In(createFinalExamDto.topicIds),
+        course: { id: course.id },
+      });
+      test.topics = topics;
+    }
+
+    let createdQuestions: QuizQuestion[] = [];
+
+    // Tạo câu hỏi thủ công nếu có
+    if (createFinalExamDto.questions?.length) {
+      const questionDtos = createFinalExamDto.questions.map(q => ({
+        question_text: q.question_text,
+        correct_answer: q.correct_answer,
+        choices: q.choices,
+        topicId: q.topicId,
+      }));
+      
+      createdQuestions = await this.quizQuestionService.createMany(questionDtos);
+    }
+
+    // Auto-generate questions from all topics
+    if (createFinalExamDto.autoGenerate && createFinalExamDto.autoGenerateCount && createFinalExamDto.topicIds?.length) {
+      const topics = await this.topicRepository.findBy({ id: In(createFinalExamDto.topicIds) });
+      const total = createFinalExamDto.autoGenerateCount;
+      const base = Math.floor(total / topics.length);
+      let remainder = total % topics.length;
+      
+      for (const topic of topics) {
+        let count = base + (remainder > 0 ? 1 : 0);
+        if (remainder > 0) remainder--;
+        
+        const aiQuestionsRaw = await this.geminiService.generateQuestions(
+          topic.title,
+          topic.id,
+          count
+        );
+        const aiQuestions = await this.quizQuestionService.createMany(aiQuestionsRaw);
+        createdQuestions = [...createdQuestions, ...aiQuestions];
+      }
+    }
+
+    // Nếu không có câu hỏi mới được tạo, auto-select từ tất cả topics của course
+    if (createdQuestions.length === 0) {
+      const courseTopics = await this.topicRepository.find({
+        where: { course: { id: createFinalExamDto.courseId } },
+      });
+      
+      if (courseTopics.length > 0) {
+        const topicIds = courseTopics.map(t => t.id);
+        const existingQuestions = await this.quizQuestionRepository
+          .createQueryBuilder('q')
+          .where('q.topicId IN (:...topicIds)', { topicIds })
+          .limit(20) // More questions for final exam
+          .orderBy('RANDOM()')
+          .getMany();
+        createdQuestions = existingQuestions;
+      }
     }
 
     test.questions = createdQuestions;
@@ -423,7 +631,6 @@ export class TestService {
       relations: ['test', 'test.course'],
       order: { createdAt: 'DESC' },
     });
-
     return attempts.map((attempt) =>
       TestAttemptResponseDto.fromEntity(attempt),
     );
@@ -528,6 +735,244 @@ export class TestService {
     test.isActive = !test.isActive;
     await this.testRepository.save(test);
     return TestResponseDto.fromEntity(test);
+  }
+
+  async getTopicExams(courseId: number, userId: number): Promise<TopicExamResponseDto[]> {
+    const topics = await this.topicRepository.find({
+      where: { course: { id: courseId } },
+      relations: ['topicExam'],
+      order: { order: 'ASC' },
+    });
+
+    const topicExams: TopicExamResponseDto[] = [];
+
+    for (const topic of topics) {
+      if (topic.topicExam) {
+        const isVideoCompleted = await this.videoProgressService.areAllTopicVideosCompleted(
+          userId,
+          topic.id,
+        );
+
+        const topicExam: TopicExamResponseDto = {
+          ...topic.topicExam,
+          topicId: topic.id,
+          topicTitle: topic.title,
+          isVideoCompleted,
+          isAvailable: isVideoCompleted,
+        };
+
+        topicExams.push(topicExam);
+      }
+    }
+
+    return topicExams;
+  }
+
+  async getFinalExam(courseId: number, userId: number): Promise<FinalExamResponseDto | null> {
+    const finalExam = await this.testRepository.findOne({
+      where: { course: { id: courseId }, type: TestType.FINAL_EXAM },
+    });
+
+    if (!finalExam) {
+      return null;
+    }
+
+    const topics = await this.topicRepository.find({
+      where: { course: { id: courseId } },
+      relations: ['topicExam'],
+    });
+
+    let completedTopicExams = 0;
+    const totalTopicExams = topics.filter(topic => topic.topicExam).length;
+
+    for (const topic of topics) {
+      if (topic.topicExam) {
+        const topicExamAttempt = await this.testAttemptRepository.findOne({
+          where: {
+            test: { id: topic.topicExam.id },
+            user: { id: userId },
+            status: AttemptStatus.COMPLETED,
+            isPassed: true,
+          },
+        });
+
+        if (topicExamAttempt) {
+          completedTopicExams++;
+        }
+      }
+    }
+
+    const isAllTopicExamsCompleted = completedTopicExams === totalTopicExams;
+
+    return {
+      ...finalExam,
+      isAllTopicExamsCompleted,
+      completedTopicExams,
+      totalTopicExams,
+      isAvailable: isAllTopicExamsCompleted,
+    };
+  }
+
+  async getCourseProgress(courseId: number, userId: number): Promise<CourseProgressDto> {
+    const course = await this.courseRepository.findOne({
+      where: { id: courseId },
+      relations: ['topics', 'topics.lessons', 'topics.topicExam'],
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const topics = course.topics;
+    let totalLessons = 0;
+    let completedLessons = 0;
+    let totalTopicExams = 0;
+    let completedTopicExams = 0;
+    let finalExamCompleted = false;
+    let finalExamScore = 0;
+
+    for (const topic of topics) {
+      const topicProgress = await this.videoProgressService.getTopicVideoProgress(
+        userId,
+        topic.id,
+      );
+
+      totalLessons += topicProgress.totalLessons;
+      completedLessons += topicProgress.completedLessons;
+
+      if (topic.topicExam) {
+        totalTopicExams++;
+        const topicExamAttempt = await this.testAttemptRepository.findOne({
+          where: {
+            test: { id: topic.topicExam.id },
+            user: { id: userId },
+            status: AttemptStatus.COMPLETED,
+            isPassed: true,
+          },
+        });
+
+        if (topicExamAttempt) {
+          completedTopicExams++;
+        }
+      }
+    }
+
+    // Check final exam
+    const finalExam = await this.testRepository.findOne({
+      where: { course: { id: courseId }, type: TestType.FINAL_EXAM },
+    });
+
+    if (finalExam) {
+      const finalExamAttempt = await this.testAttemptRepository.findOne({
+        where: {
+          test: { id: finalExam.id },
+          user: { id: userId },
+          status: AttemptStatus.COMPLETED,
+          isPassed: true,
+        },
+      });
+
+      if (finalExamAttempt) {
+        finalExamCompleted = true;
+        finalExamScore = finalExamAttempt.score;
+      }
+    }
+
+    const progressPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
+
+    return {
+      courseId: course.id,
+      courseTitle: course.title,
+      totalTopics: topics.length,
+      completedTopics: completedTopicExams,
+      totalLessons,
+      completedLessons,
+      totalTopicExams,
+      completedTopicExams,
+      finalExamCompleted,
+      finalExamScore: finalExamCompleted ? finalExamScore : undefined,
+      certificateEarned: finalExamCompleted,
+      certificateUrl: finalExamCompleted ? `/certificates/${courseId}/${userId}` : undefined,
+      progressPercentage,
+    };
+  }
+
+  async getTopicProgress(topicId: number, userId: number): Promise<TopicProgressDto> {
+    const topic = await this.topicRepository.findOne({
+      where: { id: topicId },
+      relations: ['lessons', 'topicExam'],
+    });
+
+    if (!topic) {
+      throw new NotFoundException('Topic not found');
+    }
+
+    const videoProgress = await this.videoProgressService.getTopicVideoProgress(
+      userId,
+      topicId,
+    );
+
+    let topicExamCompleted = false;
+    let topicExamScore = 0;
+
+    if (topic.topicExam) {
+      const topicExamAttempt = await this.testAttemptRepository.findOne({
+        where: {
+          test: { id: topic.topicExam.id },
+          user: { id: userId },
+          status: AttemptStatus.COMPLETED,
+          isPassed: true,
+        },
+      });
+
+      if (topicExamAttempt) {
+        topicExamCompleted = true;
+        topicExamScore = topicExamAttempt.score;
+      }
+    }
+
+    const isAvailable = videoProgress.progressPercentage >= 90;
+
+    return {
+      topicId: topic.id,
+      topicTitle: topic.title,
+      totalLessons: videoProgress.totalLessons,
+      completedLessons: videoProgress.completedLessons,
+      topicExamCompleted,
+      topicExamScore: topicExamCompleted ? topicExamScore : undefined,
+      progressPercentage: videoProgress.progressPercentage,
+      isAvailable,
+    };
+  }
+
+  async canStartTopicExam(topicId: number, userId: number): Promise<boolean> {
+    return this.videoProgressService.areAllTopicVideosCompleted(userId, topicId);
+  }
+
+  async canStartFinalExam(courseId: number, userId: number): Promise<boolean> {
+    const topics = await this.topicRepository.find({
+      where: { course: { id: courseId } },
+      relations: ['topicExam'],
+    });
+
+    for (const topic of topics) {
+      if (topic.topicExam) {
+        const topicExamAttempt = await this.testAttemptRepository.findOne({
+          where: {
+            test: { id: topic.topicExam.id },
+            user: { id: userId },
+            status: AttemptStatus.COMPLETED,
+            isPassed: true,
+          },
+        });
+
+        if (!topicExamAttempt) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   private checkAnswer(

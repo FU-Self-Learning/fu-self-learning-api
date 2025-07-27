@@ -27,6 +27,8 @@ import { StudySetModule } from './modules/study-set/study-set.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { TestModule } from './modules/test/test.module';
 import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module';
+import { VideoProgressModule } from './modules/video-progress/video-progress.module';
+import { CertificateModule } from './modules/certificate/certificate.module';
 
 @Module({
   imports: [
@@ -68,6 +70,8 @@ import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module
     EnrollmentModule,
     TestModule,
     QuizQuestionModule,
+    VideoProgressModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,5 +1,4 @@
-import { TestType, Test } from 'src/entities/test.entity';
-import { AttemptStatus, TestAttempt } from 'src/entities/test-attempt.entity';
+import { TestType } from '../../../entities/test.entity';
 
 export class TestResponseDto {
   id: number;
@@ -12,12 +11,12 @@ export class TestResponseDto {
   isActive: boolean;
   shuffleQuestions: boolean;
   shuffleAnswers: boolean;
+  requireVideoCompletion: boolean;
+  order: number;
   createdAt: Date;
-  courseId: number;
-  courseTitle: string;
-  topics?: { id: number; title: string }[];
+  updatedAt: Date;
 
-  static fromEntity(test: Test): TestResponseDto {
+  static fromEntity(test: any): TestResponseDto {
     const dto = new TestResponseDto();
     dto.id = test.id;
     dto.title = test.title;
@@ -29,40 +28,60 @@ export class TestResponseDto {
     dto.isActive = test.isActive;
     dto.shuffleQuestions = test.shuffleQuestions;
     dto.shuffleAnswers = test.shuffleAnswers;
+    dto.requireVideoCompletion = test.requireVideoCompletion;
+    dto.order = test.order;
     dto.createdAt = test.createdAt;
-    dto.courseId = test.course?.id;
-    dto.courseTitle = test.course?.title;
-    dto.topics = (test.topics || []).map((t) => ({ id: t.id, title: t.title }));
+    dto.updatedAt = test.updatedAt;
     return dto;
   }
 }
 
+export class TopicExamResponseDto extends TestResponseDto {
+  topicId: number;
+  topicTitle: string;
+  isVideoCompleted: boolean;
+  isAvailable: boolean;
+}
+
+export class FinalExamResponseDto extends TestResponseDto {
+  isAllTopicExamsCompleted: boolean;
+  completedTopicExams: number;
+  totalTopicExams: number;
+  isAvailable: boolean;
+}
+
 export class TestAttemptResponseDto {
   id: number;
-  status: AttemptStatus;
-  startedAt: Date;
-  completedAt: Date;
+  testId: number;
+  testTitle: string;
+  userId: number;
+  status: string;
   score: number;
   correctAnswers: number;
   totalQuestions: number;
   timeSpent: number;
+  startedAt: Date;
+  completedAt: Date;
   isPassed: boolean;
-  testId: number;
-  testTitle: string;
+  createdAt: Date;
+  updatedAt: Date;
 
-  static fromEntity(attempt: TestAttempt): TestAttemptResponseDto {
+  static fromEntity(entity: any): TestAttemptResponseDto {
     const dto = new TestAttemptResponseDto();
-    dto.id = attempt.id;
-    dto.status = attempt.status;
-    dto.startedAt = attempt.startedAt;
-    dto.completedAt = attempt.completedAt;
-    dto.score = attempt.score;
-    dto.correctAnswers = attempt.correctAnswers;
-    dto.totalQuestions = attempt.totalQuestions;
-    dto.timeSpent = attempt.timeSpent;
-    dto.isPassed = attempt.isPassed;
-    dto.testId = attempt.test?.id;
-    dto.testTitle = attempt.test?.title;
+    dto.id = entity.id;
+    dto.testId = entity.test?.id || 0;
+    dto.testTitle = entity.test?.title || '';
+    dto.userId = entity.user?.id || 0;
+    dto.status = entity.status;
+    dto.score = entity.score;
+    dto.correctAnswers = entity.correctAnswers;
+    dto.totalQuestions = entity.totalQuestions;
+    dto.timeSpent = entity.timeSpent;
+    dto.startedAt = entity.startedAt;
+    dto.completedAt = entity.completedAt;
+    dto.isPassed = entity.isPassed;
+    dto.createdAt = entity.createdAt;
+    dto.updatedAt = entity.updatedAt;
     return dto;
   }
 }
@@ -94,4 +113,31 @@ export class TestAnswerDetailDto {
 
 export class TestResultDetailDto extends TestAttemptResponseDto {
   answers: TestAnswerDetailDto[];
+}
+
+export class CourseProgressDto {
+  courseId: number;
+  courseTitle: string;
+  totalTopics: number;
+  completedTopics: number;
+  totalLessons: number;
+  completedLessons: number;
+  totalTopicExams: number;
+  completedTopicExams: number;
+  finalExamCompleted: boolean;
+  finalExamScore?: number;
+  certificateEarned: boolean;
+  certificateUrl?: string;
+  progressPercentage: number;
+}
+
+export class TopicProgressDto {
+  topicId: number;
+  topicTitle: string;
+  totalLessons: number;
+  completedLessons: number;
+  topicExamCompleted: boolean;
+  topicExamScore?: number;
+  progressPercentage: number;
+  isAvailable: boolean;
 } 

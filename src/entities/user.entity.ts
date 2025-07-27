@@ -18,6 +18,8 @@ import { QuizResult } from './quiz-result.entity';
 import { CommentPost } from './comment-post.entity';
 import { StudySet } from './study-set.entity';
 import { TestAttempt } from './test-attempt.entity';
+import { VideoProgress } from './video-progress.entity';
+import { CourseCertificate } from './course-certificate.entity';
 
 @Entity('users')
 export class User {
@@ -101,6 +103,12 @@ export class User {
 
   @OneToMany(() => TestAttempt, (attempt) => attempt.user)
   testAttempts: TestAttempt[];
+
+  @OneToMany(() => VideoProgress, (progress) => progress.user)
+  videoProgress: VideoProgress[];
+
+  @OneToMany(() => CourseCertificate, (certificate) => certificate.user)
+  courseCertificates: CourseCertificate[];
 
   @CreateDateColumn()
   createdAt: Date;

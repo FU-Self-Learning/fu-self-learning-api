@@ -10,6 +10,7 @@ import { Topic } from 'src/entities/topic.entity';
 import { QuizQuestion } from 'src/entities/quiz-question.entity';
 import { QuizQuestionModule } from '../quiz-question/quiz-question.module';
 import { AiAgentModule } from '../ai-agent/ai-agent.module';
+import { VideoProgressModule } from '../video-progress/video-progress.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AiAgentModule } from '../ai-agent/ai-agent.module';
     ]),
     QuizQuestionModule,
     AiAgentModule,
+    VideoProgressModule,
   ],
   controllers: [TestController],
   providers: [TestService],
