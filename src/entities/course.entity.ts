@@ -45,6 +45,9 @@ export class Course {
   @Column({ nullable: true })
   documentUrl: string;
 
+  @Column({ default: false })
+  isActive: boolean;
+  
   @OneToMany(() => CommentCourse, (commentCourse) => commentCourse.course)
   comments: CommentCourse[];
 

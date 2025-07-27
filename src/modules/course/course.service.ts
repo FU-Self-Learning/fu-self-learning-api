@@ -1,3 +1,4 @@
+
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
@@ -26,7 +27,20 @@ export class CourseService {
     @InjectRepository(Topic)
     private topicRepository: Repository<Topic>,
   ) {}
-
+  
+  async banCourse(id: number): Promise<Course> {
+    const course = await this.courseRepository.findOne({ where: { id } });
+    if (!course) {
+      throw new BadRequestException('Course not found');
+    }
+    if (!course.isActive) {
+      throw new BadRequestException('Course is already banned');
+    }
+    course.isActive = false;
+    await this.courseRepository.save(course);
+    return course;
+  }
+  
   async create(
     createCourseDto: CreateCourseDto,
     uid: string,
@@ -47,14 +61,14 @@ export class CourseService {
     const categories = await this.findCategoriesByIds(
       createCourseDto.categoryIds,
     );
-
+    
     if (categories.length !== createCourseDto.categoryIds.length) {
       throw new BadRequestException({
         message: ErrorMessage.INVALID_REQUEST_INPUT,
         description: 'Some categories not found',
       });
     }
-
+    
     const course = this.courseRepository.create({
       ...createCourseDto,
       instructor,
@@ -63,10 +77,23 @@ export class CourseService {
       videoIntroUrl: video ? video : undefined,
       documentUrl: document ? document : undefined,
     });
-
+    
     return this.courseRepository.save(course);
   }
-
+  
+    async approveCourse(id: number): Promise<Course> {
+      const course = await this.courseRepository.findOne({ where: { id } });
+      if (!course) {
+        throw new BadRequestException('Course not found');
+      }
+      if (course.isActive) {
+        throw new BadRequestException('Course is already approved');
+      }
+      course.isActive = true;
+      await this.courseRepository.save(course);
+      return course;
+    }
+  
   async findAll(): Promise<Course[]> {
     return this.courseRepository.find({
       relations: ['categories', 'instructor', 'topics'],

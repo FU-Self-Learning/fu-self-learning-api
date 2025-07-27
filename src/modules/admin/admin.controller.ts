@@ -7,9 +7,6 @@ import {
   UseGuards,
   Get,
   Delete,
-  Body,
-  Post,
-  Put,
   Req,
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
@@ -18,6 +15,7 @@ import { Roles } from 'src/config/decorators/roles.decorator';
 import { JwtAuthGuard } from 'src/config/jwt';
 import { RolesGuard } from 'src/config/guards/roles.guard';
 import { CourseService } from '../course/course.service';
+import { EnrollmentService } from '../enrollment/enrollment.service';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,7 +23,15 @@ export class AdminController {
   constructor(
     private readonly usersService: UsersService,
     private readonly courseService: CourseService,
+    private readonly enrollmentService: EnrollmentService,
   ) {}
+  // --- TOP COURSES ---
+  @Get('courses/top-purchased')
+  @Roles(Role.Admin)
+  async getTopPurchasedCourses() {
+    const topCourses = await this.enrollmentService.getTopPurchasedCourses(5);
+    return topCourses;
+  }
 
   // --- USER MANAGEMENT ---
   @Get('users')
@@ -69,115 +75,6 @@ export class AdminController {
   async deleteUser(@Param('id') id: string) {
     await this.usersService.remove(Number(id));
     return { message: 'User deleted successfully' };
-  }
-
-  @Patch('users/:id/role')
-  @Roles(Role.Admin)
-  changeUserRole(@Param('id') _id: string, @Body() _body: { role: Role }) {
-    // TODO: Implement change user role in UsersService
-    return { message: 'TODO: Change user role' };
-  }
-
-  // --- COURSE MANAGEMENT ---
-  @Get('courses')
-  @Roles(Role.Admin)
-  getAllCourses() {
-    // TODO: Inject CourseService and use findAll/findAllWithAdminRole
-    return { message: 'TODO: Get all courses' };
-  }
-
-  @Get('courses/:id')
-  @Roles(Role.Admin)
-  getCourseDetail(@Param('id') id: string) {
-    // TODO: Get course detail for admin
-    return { message: 'TODO: Get course detail' };
-  }
-
-  @Get('courses/pending')
-  @Roles(Role.Admin)
-  getPendingCourses() {
-    // TODO: Get pending courses
-    return { message: 'TODO: Get pending courses' };
-  }
-
-  @Patch('courses/:id/activate')
-  @Roles(Role.Admin)
-  activateCourse(@Param('id') id: string) {
-    // TODO: Activate course
-    return { message: 'TODO: Activate course' };
-  }
-
-  @Patch('courses/:id/deactivate')
-  @Roles(Role.Admin)
-  deactivateCourse(@Param('id') id: string) {
-    // TODO: Deactivate course
-    return { message: 'TODO: Deactivate course' };
-  }
-
-  @Delete('courses/:id')
-  @Roles(Role.Admin)
-  deleteCourse(@Param('id') id: string) {
-    // TODO: Delete course as admin
-    return { message: 'TODO: Delete course' };
-  }
-
-  // --- POST MANAGEMENT ---
-  @Get('posts')
-  @Roles(Role.Admin)
-  getAllPosts() {
-    // TODO: Inject PostService and use findAll
-    return { message: 'TODO: Get all posts' };
-  }
-
-  @Delete('posts/:id')
-  @Roles(Role.Admin)
-  deletePost(@Param('id') id: string) {
-    // TODO: Delete post as admin
-    return { message: 'TODO: Delete post' };
-  }
-
-  // --- COMMENT MANAGEMENT ---
-  @Get('comments')
-  @Roles(Role.Admin)
-  getAllComments() {
-    // TODO: Inject CommentPostService and use findAll
-    return { message: 'TODO: Get all comments' };
-  }
-
-  @Delete('comments/:id')
-  @Roles(Role.Admin)
-  deleteComment(@Param('id') id: string) {
-    // TODO: Delete comment as admin
-    return { message: 'TODO: Delete comment' };
-  }
-
-  // --- CATEGORY MANAGEMENT ---
-  @Get('categories')
-  @Roles(Role.Admin)
-  getAllCategories() {
-    // TODO: Inject CategoryService and use findAll
-    return { message: 'TODO: Get all categories' };
-  }
-
-  @Post('categories')
-  @Roles(Role.Admin)
-  createCategory(@Body() _body: any) {
-    // TODO: Create category
-    return { message: 'TODO: Create category' };
-  }
-
-  @Put('categories/:id')
-  @Roles(Role.Admin)
-  updateCategory(@Param('id') id: string, @Body() _body: any) {
-    // TODO: Update category
-    return { message: 'TODO: Update category' };
-  }
-
-  @Delete('categories/:id')
-  @Roles(Role.Admin)
-  deleteCategory(@Param('id') id: string) {
-    // TODO: Delete category
-    return { message: 'TODO: Delete category' };
   }
 
   // --- DASHBOARD STATISTICS ---

@@ -53,6 +53,9 @@ export class DetailViewCourseDto {
   totalLessons: number;
 
   @Expose()
+  isActive: boolean;
+
+  @Expose()
   price: number;
 
   @Expose()

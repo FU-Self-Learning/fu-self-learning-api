@@ -5,12 +5,14 @@ import { User } from 'src/entities/user.entity';
 import { AdminController } from './admin.controller';
 import { UsersModule } from '../users/users.module';
 import { CourseModule } from '../course/course.module';
+import { EnrollmentModule } from '../enrollment/enrollment.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Course]),
     UsersModule,
     CourseModule,
+    EnrollmentModule,
   ],
   providers: [],
   controllers: [AdminController],

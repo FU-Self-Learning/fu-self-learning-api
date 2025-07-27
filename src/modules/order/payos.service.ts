@@ -1,3 +1,4 @@
+
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import axios from 'axios';
 import * as crypto from 'crypto';
@@ -19,14 +20,13 @@ interface PayOSPaymentBody {
 
 @Injectable()
 export class PayOsService {
-  private createPaymentBody(amount: number, orderCode: number | string): PayOSPaymentBody {
+  private createPaymentBody(amount: number, orderCode: number | string, courseId: number | string): PayOSPaymentBody {
     const { returnUrl, cancelUrl } = getPayOsConfig();
-    
     return {
       orderCode: Number(orderCode),
       amount: Math.round(amount),
       description: `Thanh toán khoá học #${orderCode}`.slice(0, 25),
-      returnUrl,
+      returnUrl: `${returnUrl}?courseId=${courseId}`,
       cancelUrl,
       buyerName: 'User',
       items: [
@@ -85,17 +85,14 @@ export class PayOsService {
     return { payUrl, payOsOrderId };
   }
 
-  async createPayment(amount: number, orderCode: number | string): Promise<{ payUrl: string; payOsOrderId: string }> {
+  async createPayment(amount: number, orderCode: number | string, courseId: number | string): Promise<{ payUrl: string; payOsOrderId: string }> {
     const { clientId, apiKey, checksumKey, endpoint } = getPayOsConfig();
-    
     if (!checksumKey || !clientId || !apiKey) {
       throw new InternalServerErrorException('PayOs configuration is missing required fields');
     }
-
-    const paymentBody = this.createPaymentBody(amount, orderCode);
+    const paymentBody = this.createPaymentBody(amount, orderCode, courseId);
     const signature = this.createSignature(paymentBody, checksumKey);
     const headers = this.createPaymentHeaders(clientId, apiKey);
-    
     const responseData = await this.sendPaymentRequest(endpoint, paymentBody, signature, headers);
     return this.extractPaymentResponse(responseData);
   }
