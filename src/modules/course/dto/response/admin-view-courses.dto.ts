@@ -33,6 +33,12 @@ export class AdminViewCourseDto {
   createdAt: Date;
 
   @Expose()
+  updatedAt: Date;
+
+  @Expose()
+  isActive: boolean;
+
+  @Expose()
   @Type(() => _InstructorDto)
   instructor: _InstructorDto;
 

@@ -8,6 +8,9 @@ import {
 } from 'typeorm';
 import { User } from './user.entity';
 
+import { OneToMany } from 'typeorm';
+import { PostLike } from './post-like.entity';
+
 @Entity('posts')
 export class Post {
   @PrimaryGeneratedColumn()
@@ -24,6 +27,9 @@ export class Post {
 
   @ManyToOne(() => User, (user) => user.posts)
   user: User;
+
+  @OneToMany(() => PostLike, (like) => like.post)
+  likes: PostLike[];
 
   @Column()
   status: string;

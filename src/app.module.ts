@@ -20,11 +20,13 @@ import { FlashcardsModule } from './modules/flashcards/flashcards.module';
 import { CategoryModule } from './modules/category/category.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { LessonModule } from './modules/lesson/lesson.module';
+import { GroupChatModule } from './modules/group-chat/group-chat.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { InstructorRequestModule } from './modules/instructor-request/instructor-request.module';
 import { OrderModule } from './modules/order/order.module';
 import { StudySetModule } from './modules/study-set/study-set.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { PostLikeModule } from './modules/post-like/post-like.module';
 import { TestModule } from './modules/test/test.module';
 import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module';
 import { VideoProgressModule } from './modules/video-progress/video-progress.module';
@@ -62,12 +64,13 @@ import { CertificateModule } from './modules/certificate/certificate.module';
     FlashcardsModule,
     CategoryModule,
     ChatModule,
-    LessonModule,
     AdminModule,
     InstructorRequestModule,
     OrderModule,
     StudySetModule,
     EnrollmentModule,
+    GroupChatModule,
+    PostLikeModule,
     TestModule,
     QuizQuestionModule,
     VideoProgressModule,
