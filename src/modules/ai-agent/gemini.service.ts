@@ -96,6 +96,80 @@ Example:
     }
   }
 
+  async explainAnswer(
+    questionText: string,
+    choices: string[],
+    correctAnswers: string[],
+    selectedAnswers: string[],
+    isCorrect: boolean,
+    topicContext?: string
+  ): Promise<{
+    explanation: string;
+    whyCorrect: string;
+    whyWrong?: string;
+    learningTip: string;
+  }> {
+    try {
+      const prompt = `
+You are an AI teacher specializing in explaining test answers. Please analyze the following question and provide a detailed explanation:
+
+**Question:** ${questionText}
+
+**Choices:**
+${choices.map((choice, index) => `${String.fromCharCode(65 + index)}. ${choice}`).join('\n')}
+
+**Correct Answer:** ${correctAnswers.join(', ')}
+**Selected Answer:** ${selectedAnswers.join(', ')}
+**Result:** ${isCorrect ? 'CORRECT' : 'INCORRECT'}
+
+${topicContext ? `**Topic Context:** ${topicContext}` : ''}
+
+Please return JSON with the following structure:
+{
+  "explanation": "Detailed explanation of why the correct answer is right",
+  "whyCorrect": "Reason why the correct answer is accurate",
+  "whyWrong": "Reason why the selected answer is wrong (only if result is INCORRECT)",
+  "learningTip": "Learning tip to improve knowledge"
+}
+
+Return only JSON, no additional text.
+`;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+
+      // Parse JSON response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        throw new Error('No valid JSON found in AI response');
+      }
+
+      const explanation = JSON.parse(jsonMatch[0]);
+      
+      // Validate required fields
+      if (!explanation.explanation || !explanation.whyCorrect || !explanation.learningTip) {
+        throw new Error('Invalid explanation structure');
+      }
+
+      return {
+        explanation: explanation.explanation,
+        whyCorrect: explanation.whyCorrect,
+        whyWrong: explanation.whyWrong,
+        learningTip: explanation.learningTip,
+      };
+    } catch (error) {
+      this.logger.error('Error explaining answer:', error);
+      // Return fallback explanation
+      return {
+        explanation: 'Unable to generate detailed explanation at this time.',
+        whyCorrect: `The correct answer is: ${correctAnswers.join(', ')}`,
+        whyWrong: isCorrect ? undefined : `Your selected answer: ${selectedAnswers.join(', ')} is incorrect.`,
+        learningTip: 'Please review the material on this topic to improve your results.',
+      };
+    }
+  }
+
   private buildAnalysisPrompt(pdfText: string, categoryList: string): string {
     return `
       You are an expert course designer. Analyze the following PDF content and create a structured course outline.

@@ -15,6 +15,7 @@ import { CommentCourse } from './comment-course.entity';
 import { Category } from './category.entity';
 import { Flashcard } from './flashcard.entity';
 import { Test } from './test.entity';
+import { CourseCertificate } from './course-certificate.entity';
 
 @Entity('courses')
 export class Course {
@@ -60,6 +61,9 @@ export class Course {
 
   @OneToMany(() => Test, (test) => test.course)
   tests: Test[];
+
+  @OneToMany(() => CourseCertificate, (certificate) => certificate.course)
+  certificates: CourseCertificate[];
 
   @CreateDateColumn()
   createdAt: Date;

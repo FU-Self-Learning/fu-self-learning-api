@@ -29,6 +29,8 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { PostLikeModule } from './modules/post-like/post-like.module';
 import { TestModule } from './modules/test/test.module';
 import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module';
+import { VideoProgressModule } from './modules/video-progress/video-progress.module';
+import { CertificateModule } from './modules/certificate/certificate.module';
 
 @Module({
   imports: [
@@ -71,6 +73,8 @@ import { QuizQuestionModule } from './modules/quiz-question/quiz-question.module
     PostLikeModule,
     TestModule,
     QuizQuestionModule,
+    VideoProgressModule,
+    CertificateModule,
   ],
   controllers: [AppController],
   providers: [

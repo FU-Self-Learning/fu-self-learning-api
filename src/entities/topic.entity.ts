@@ -42,11 +42,17 @@ export class Topic {
   @ManyToMany(() => Test, (test) => test.topics)
   tests: Test[];
 
+  @OneToMany(() => Test, (test) => test.topic)
+  topicExam: Test; // Topic Exam for this topic
+
   @Column()
   title: string;
 
   @Column('text')
   description: string;
+
+  @Column({ default: 0 }) // thứ tự hiển thị
+  order: number;
 
   @CreateDateColumn()
   createdAt: Date;

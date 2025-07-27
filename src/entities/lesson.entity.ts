@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Topic } from './topic.entity';
 import { Flashcard } from './flashcard.entity';
+import { VideoProgress } from './video-progress.entity';
 
 @Entity('lessons')
 export class Lesson {
@@ -21,6 +22,9 @@ export class Lesson {
   @OneToMany(() => Flashcard, (flashcard) => flashcard.lesson)
   flashcards: Flashcard[];
 
+  @OneToMany(() => VideoProgress, (progress) => progress.lesson)
+  videoProgress: VideoProgress[];
+
   @Column()
   title: string;
 
@@ -32,6 +36,9 @@ export class Lesson {
 
   @Column('text')
   description: string;
+
+  @Column({ default: 0 }) // thứ tự hiển thị
+  order: number;
 
   @CreateDateColumn()
   createdAt: Date;
