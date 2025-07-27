@@ -1,4 +1,5 @@
 import { Expose, Type } from 'class-transformer';
+import { CourseStatus } from 'src/common/enums/course-status.enum';
 
 class _InstructorDto {
   @Expose()
@@ -53,7 +54,7 @@ export class DetailViewCourseDto {
   totalLessons: number;
 
   @Expose()
-  isActive: boolean;
+  status: CourseStatus;
 
   @Expose()
   price: number;

@@ -158,7 +158,7 @@ export class CourseController {
   }
 
   @Get(':id')
-  @Roles(Role.Student, Role.Instructor)
+  @Roles(Role.Student, Role.Instructor, Role.Admin)
   findOne(
     @Param('id') id: string,
     @Request() _req: CustomRequest,
@@ -211,6 +211,12 @@ export class CourseController {
   @Roles(Role.Admin)
   async banCourse(@Param('id') id: string, @Request() req) {
     return this.courseService.banCourse(+id);
+  }
+
+  @Patch(':id/reject')
+  @Roles(Role.Admin)
+  async rejectCourse(@Param('id') id: string, @Request() req) {
+    return this.courseService.rejectCourse(+id, 'Course is already rejected');
   }
 
   @Delete(':id')

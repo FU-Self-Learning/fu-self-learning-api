@@ -146,6 +146,30 @@ export class OrderService {
     });
   }
 
+  async calculateTotalRevenue(): Promise<number> {
+    const result = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.amount)', 'total')
+      .where('order.status = :status', { status: OrderStatus.PAID })
+      .getRawOne();
+      
+    return Number(result?.total || 0);
+  }
+
+  async calculateMonthlyRevenue(startDate: Date, endDate: Date): Promise<number> {
+    const result = await this.orderRepository
+      .createQueryBuilder('order')
+      .select('SUM(order.amount)', 'total')
+      .where('order.status = :status', { status: OrderStatus.PAID })
+      .andWhere('order.createdAt BETWEEN :startDate AND :endDate', {
+        startDate,
+        endDate,
+      })
+      .getRawOne();
+
+    return Number(result?.total || 0);
+  }
+
   async createOrderWithPayment(user: User, courseId: number, amount: number): Promise<CreateOrderResponseDto> {
     try {
       const { order, orderCode } = await this.createOrder(user, courseId, amount);
