@@ -191,7 +191,6 @@ export class TestController {
     @Query('courseId') courseId?: number,
   ): Promise<TestAttemptResponseDto[]> {
     const results = await this.testService.getUserTestResults(user.id, courseId);
-    console.log('results', results);
     return results;
   }
 

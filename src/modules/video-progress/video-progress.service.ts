@@ -48,8 +48,11 @@ export class VideoProgressService {
     videoProgress.progressPercentage = (watchedDuration / totalDuration) * 100;
     videoProgress.lastWatchedAt = new Date();
 
-    // Check if video is completed (watched 90% or more)
-    if (videoProgress.progressPercentage >= 90 && !videoProgress.isCompleted) {
+    // Check if video is completed (near the end: 5 seconds remaining or 8% of total duration)
+    const remainingTime = totalDuration - watchedDuration;
+    const completionThreshold = Math.min(5, totalDuration * 0.08);
+    
+    if (remainingTime <= completionThreshold && !videoProgress.isCompleted) {
       videoProgress.isCompleted = true;
       videoProgress.completedAt = new Date();
     }
