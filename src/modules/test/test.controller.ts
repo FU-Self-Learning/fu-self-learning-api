@@ -59,7 +59,10 @@ export class TestController {
     @Body() createTestWithQuestionsDto: CreateTestWithQuestionsDto,
     @GetUser() instructor: any,
   ): Promise<TestResponseDto> {
-    return this.testService.createTestWithQuestions(createTestWithQuestionsDto, Number(instructor.id));
+    return this.testService.createTestWithQuestions(
+      createTestWithQuestionsDto,
+      Number(instructor.id),
+    );
   }
 
   @Post('topic-exam')
@@ -69,7 +72,10 @@ export class TestController {
     @Body() createTopicExamDto: CreateTopicExamDto,
     @GetUser() instructor: any,
   ): Promise<TestResponseDto> {
-    return this.testService.createTopicExam(createTopicExamDto, Number(instructor.id));
+    return this.testService.createTopicExam(
+      createTopicExamDto,
+      Number(instructor.id),
+    );
   }
 
   @Post('final-exam')
@@ -79,18 +85,25 @@ export class TestController {
     @Body() createFinalExamDto: CreateFinalExamDto,
     @GetUser() instructor: any,
   ): Promise<TestResponseDto> {
-    return this.testService.createFinalExam(createFinalExamDto, Number(instructor.id));
+    return this.testService.createFinalExam(
+      createFinalExamDto,
+      Number(instructor.id),
+    );
   }
 
   @Get('course/:courseId/instructor')
   @UseGuards(RolesGuard)
   @Roles(Role.Instructor, Role.Admin)
-  async getTestsByCourseForInstructor(@Param('courseId') courseId: number): Promise<TestResponseDto[]> {
+  async getTestsByCourseForInstructor(
+    @Param('courseId') courseId: number,
+  ): Promise<TestResponseDto[]> {
     return this.testService.getTestsByCourse(courseId, true);
   }
 
   @Get('course/:courseId')
-  async getTestsByCourse(@Param('courseId') courseId: number): Promise<TestResponseDto[]> {
+  async getTestsByCourse(
+    @Param('courseId') courseId: number,
+  ): Promise<TestResponseDto[]> {
     return this.testService.getTestsByCourse(courseId, false);
   }
 
@@ -140,7 +153,10 @@ export class TestController {
     @Param('courseId') courseId: number,
     @GetUser() user: any,
   ): Promise<{ canStart: boolean }> {
-    const canStart = await this.testService.canStartFinalExam(courseId, user.id);
+    const canStart = await this.testService.canStartFinalExam(
+      courseId,
+      user.id,
+    );
     return { canStart };
   }
 
@@ -190,7 +206,10 @@ export class TestController {
     @GetUser() user: any,
     @Query('courseId') courseId?: number,
   ): Promise<TestAttemptResponseDto[]> {
-    const results = await this.testService.getUserTestResults(user.id, courseId);
+    const results = await this.testService.getUserTestResults(
+      user.id,
+      courseId,
+    );
     return results;
   }
 
@@ -220,7 +239,8 @@ export class TestController {
   @Post('explain-answer')
   @UseGuards(JwtAuthGuard)
   async explainAnswer(
-    @Body() body: {
+    @Body()
+    body: {
       questionText: string;
       choices: string[];
       correctAnswers: string[];
@@ -239,4 +259,4 @@ export class TestController {
       body.topicContext,
     );
   }
-} 
+}

@@ -416,10 +416,18 @@ export class TestService {
     if (!isInstructor) where.isActive = true;
     const tests = await this.testRepository.find({
       where,
-      relations: ['course'],
+      relations: ['course', 'topic'],
       order: { createdAt: 'DESC' },
     });
-    return tests.map((test) => TestResponseDto.fromEntity(test));
+    
+    return tests.map((test) => {
+      const dto = TestResponseDto.fromEntity(test);
+      // Add topicIds array for frontend compatibility
+      if (test.topic) {
+        (dto as any).topicIds = [test.topic.id];
+      }
+      return dto;
+    });
   }
 
   async getTestDetail(testId: number, userId: number): Promise<TestDetailDto> {
@@ -740,31 +748,86 @@ export class TestService {
   async getTopicExams(courseId: number, userId: number): Promise<TopicExamResponseDto[]> {
     const topics = await this.topicRepository.find({
       where: { course: { id: courseId } },
-      relations: ['topicExam'],
       order: { order: 'ASC' },
+    });
+
+    const topicExamsDirect = await this.testRepository.find({
+      where: { 
+        course: { id: courseId }, 
+        type: TestType.TOPIC_EXAM 
+      },
+      relations: ['topic'],
     });
 
     const topicExams: TopicExamResponseDto[] = [];
 
-    for (const topic of topics) {
-      if (topic.topicExam) {
+    // Process each topic exam directly
+    for (const exam of topicExamsDirect) {
+      if (exam.topic) {
         const isVideoCompleted = await this.videoProgressService.areAllTopicVideosCompleted(
           userId,
-          topic.id,
+          exam.topic.id,
         );
 
+        // Get current in-progress attempt for THIS specific topic exam
+        const currentAttempt = await this.testAttemptRepository.findOne({
+          where: {
+            test: { id: exam.id },
+            user: { id: userId },
+            status: AttemptStatus.IN_PROGRESS,
+          },
+          order: { startedAt: 'DESC' },
+        });
+
+        // Get last completed attempt for THIS specific topic exam
+        const lastAttempt = await this.testAttemptRepository.findOne({
+          where: {
+            test: { id: exam.id },
+            user: { id: userId },
+            status: AttemptStatus.COMPLETED,
+          },
+          order: { completedAt: 'DESC' },
+        });
+        // Get total attempt count for THIS specific topic exam
+        const attemptCount = await this.testAttemptRepository.count({
+          where: {
+            test: { id: exam.id },
+            user: { id: userId },
+            status: AttemptStatus.COMPLETED,
+          },
+        });
+
+        // Determine if user can retry (failed attempts or no attempts yet)
+        const canRetry = !lastAttempt || !lastAttempt.isPassed;
+
         const topicExam: TopicExamResponseDto = {
-          ...topic.topicExam,
-          topicId: topic.id,
-          topicTitle: topic.title,
+          ...exam,
+          topicId: exam.topic.id,
+          topicTitle: exam.topic.title,
           isVideoCompleted,
           isAvailable: isVideoCompleted,
+          currentAttempt: currentAttempt ? {
+            id: currentAttempt.id,
+            status: currentAttempt.status,
+            startedAt: currentAttempt.startedAt,
+            score: currentAttempt.score ? Number(currentAttempt.score) : undefined,
+            isPassed: currentAttempt.isPassed,
+          } : undefined,
+          lastAttempt: lastAttempt ? {
+            id: lastAttempt.id,
+            status: lastAttempt.status,
+            completedAt: lastAttempt.completedAt,
+            score: Number(lastAttempt.score),
+            isPassed: lastAttempt.isPassed,
+          } : undefined,
+          canRetry,
+          attemptCount,
         };
 
         topicExams.push(topicExam);
       }
     }
-
+    
     return topicExams;
   }
 

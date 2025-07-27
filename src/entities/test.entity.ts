@@ -34,7 +34,7 @@ export class Test {
   @ManyToOne(() => Course, (course) => course.tests)
   course: Course;
 
-  @ManyToOne(() => Topic, (topic) => topic.tests, { nullable: true })
+  @ManyToOne(() => Topic, (topic) => topic.topicExam, { nullable: true })
   topic: Topic; // For Topic Exam, link to specific topic
 
   @ManyToMany(() => Topic, (topic) => topic.tests)

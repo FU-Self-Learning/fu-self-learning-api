@@ -41,6 +41,23 @@ export class TopicExamResponseDto extends TestResponseDto {
   topicTitle: string;
   isVideoCompleted: boolean;
   isAvailable: boolean;
+  // Add attempt information for progress tracking
+  currentAttempt?: {
+    id: number;
+    status: string;
+    startedAt: Date;
+    score?: number;
+    isPassed?: boolean;
+  };
+  lastAttempt?: {
+    id: number;
+    status: string;
+    completedAt: Date;
+    score: number;
+    isPassed: boolean;
+  };
+  canRetry: boolean;
+  attemptCount: number;
 }
 
 export class FinalExamResponseDto extends TestResponseDto {
@@ -73,7 +90,7 @@ export class TestAttemptResponseDto {
     dto.testTitle = entity.test?.title || '';
     dto.userId = entity.user?.id || 0;
     dto.status = entity.status;
-    dto.score = entity.score;
+    dto.score = entity.score ? Number(entity.score) : 0;
     dto.correctAnswers = entity.correctAnswers;
     dto.totalQuestions = entity.totalQuestions;
     dto.timeSpent = entity.timeSpent;
