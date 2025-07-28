@@ -7,6 +7,7 @@ import {
   UseGuards,
   Request,
   Body,
+  Param,
 } from '@nestjs/common';
 import { AiAgentService } from './ai-agent.service';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -62,5 +63,11 @@ export class AiAgentController {
     if (!topic) throw new Error('Topic not found');
     const questions = await this.aiAgentService.geminiService.generateQuestions(topic.title, topicId, count);
     return questions;
+  }
+
+  @Post('preview-course/:courseId')
+  @UseGuards(JwtAuthGuard)
+  async previewCourseWithAI(@Param('courseId') courseId: string) {
+    return this.aiAgentService.previewCourseWithAI(parseInt(courseId));
   }
 }

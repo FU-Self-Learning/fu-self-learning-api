@@ -19,9 +19,16 @@ export class AiAgentService {
   private courseService: CourseService;
   private topicService: TopicService;
 
-  constructor(geminiService: GeminiService, @InjectRepository(Topic) topicRepository: Repository<Topic>) {
+  constructor(
+    geminiService: GeminiService, 
+    @InjectRepository(Topic) topicRepository: Repository<Topic>,
+    courseService: CourseService,
+    topicService: TopicService
+  ) {
     this.geminiService = geminiService;
     this.topicRepository = topicRepository;
+    this.courseService = courseService;
+    this.topicService = topicService;
     this.openAIModel = new ChatOpenAI({
       modelName: 'gpt-4o-mini',
       temperature: 0.7,
@@ -114,6 +121,141 @@ export class AiAgentService {
     } catch (error) {
       Logger.error('Error generating flashcards:', error);
       throw new Error('Failed to generate flashcards with AI');
+    }
+  }
+
+  async previewCourseWithAI(courseId: number): Promise<{
+    isValid: boolean;
+    validationResults: {
+      hasMinimumTopics: boolean;
+      contentAppropriate: boolean;
+      structureValid: boolean;
+    };
+    feedback: {
+      topics: string[];
+      content: string[];
+      structure: string[];
+      warnings: string[];
+    };
+    aiAnalysis: string;
+  }> {
+    try {
+      // Get course with topics and lessons
+      const course = await this.courseService.findOne(courseId);
+      const topics = await this.topicRepository.find({
+        where: { course: { id: courseId } },
+        relations: ['lessons'],
+      });
+
+      // Basic validation
+      const hasMinimumTopics = topics.length >= 1;
+      
+      // Prepare content for AI analysis
+      const contentToAnalyze = {
+        course: {
+          title: course.title,
+          description: course.description,
+        },
+        topics: topics.map(topic => ({
+          title: topic.title,
+          description: topic.description,
+          lessons: topic.lessons?.map(lesson => ({
+            title: lesson.title,
+            description: lesson.description || '',
+          })) || [],
+        })),
+      };
+
+      // AI content validation prompt
+      const validationPrompt = PromptTemplate.fromTemplate(`
+        Analyze the following course content for appropriateness and educational value. 
+        Check for:
+        1. Inappropriate, offensive, or harmful content
+        2. Educational quality and relevance
+        3. Clear and professional language
+        4. Proper course structure
+
+        Course Content:
+        {content}
+
+        Respond in JSON format with the following structure:
+        {{
+          "isAppropriate": boolean,
+          "contentQuality": "excellent|good|fair|poor",
+          "issues": ["list of specific issues found"],
+          "recommendations": ["list of improvement suggestions"],
+          "overallAssessment": "string with detailed analysis"
+        }}
+      `);
+
+      const validationChain = RunnableSequence.from([validationPrompt, this.openAIModel]);
+      const validationResponse = await validationChain.invoke({ 
+        content: JSON.stringify(contentToAnalyze, null, 2) 
+      });
+
+      // Parse AI response
+      const responseContent = typeof validationResponse.content === 'string' 
+        ? validationResponse.content 
+        : JSON.stringify(validationResponse.content);
+      
+      const jsonMatch = responseContent.match(/```json([\s\S]*?)```/);
+      let aiAnalysis: {
+        isAppropriate?: boolean;
+        contentQuality?: string;
+        issues?: string[];
+        recommendations?: string[];
+        overallAssessment?: string;
+      } = {};
+      
+      if (jsonMatch) {
+        try {
+          aiAnalysis = JSON.parse(jsonMatch[1]);
+        } catch (error) {
+          Logger.error('Error parsing AI validation response:', error);
+          aiAnalysis = { overallAssessment: responseContent };
+        }
+      } else {
+        aiAnalysis = { overallAssessment: responseContent };
+      }
+
+      // Structure validation
+      const structureIssues: string[] = [];
+      const structureWarnings: string[] = [];
+      
+      if (!hasMinimumTopics) {
+        structureIssues.push('Course must have at least 1 topic');
+      }
+
+      // Check for empty topics (warning only, not validation failure)
+      const emptyTopics = topics.filter(topic => !topic.lessons || topic.lessons.length === 0);
+      if (emptyTopics.length > 0) {
+        structureWarnings.push(`${emptyTopics.length} topic(s) have no lessons (recommended to add lessons for better learning experience)`);
+      }
+
+      // Determine overall validity (structure warnings don't fail validation)
+      const contentAppropriate = aiAnalysis.isAppropriate !== false;
+      const structureValid = structureIssues.length === 0; // Only critical issues fail validation
+      const isValid = hasMinimumTopics && contentAppropriate && structureValid;
+
+      return {
+        isValid,
+        validationResults: {
+          hasMinimumTopics,
+          contentAppropriate,
+          structureValid,
+        },
+        feedback: {
+          topics: hasMinimumTopics ? [] : ['Course must have at least 1 topic'],
+          content: aiAnalysis.issues || [],
+          structure: structureIssues,
+          warnings: structureWarnings, // Add warnings for non-critical issues
+        },
+        aiAnalysis: aiAnalysis.overallAssessment || 'AI analysis completed',
+      };
+
+    } catch (error) {
+      Logger.error('Error in previewCourseWithAI:', error);
+      throw new Error('Failed to preview course with AI');
     }
   }
 }
