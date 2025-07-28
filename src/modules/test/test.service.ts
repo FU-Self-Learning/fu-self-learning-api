@@ -867,12 +867,60 @@ export class TestService {
 
     const isAllTopicExamsCompleted = completedTopicExams === totalTopicExams;
 
+    // Get current in-progress attempt for final exam
+    const currentAttempt = await this.testAttemptRepository.findOne({
+      where: {
+        test: { id: finalExam.id },
+        user: { id: userId },
+        status: AttemptStatus.IN_PROGRESS,
+      },
+      order: { startedAt: 'DESC' },
+    });
+
+    // Get last completed attempt for final exam
+    const lastAttempt = await this.testAttemptRepository.findOne({
+      where: {
+        test: { id: finalExam.id },
+        user: { id: userId },
+        status: AttemptStatus.COMPLETED,
+      },
+      order: { completedAt: 'DESC' },
+    });
+
+    // Get total attempt count for final exam
+    const attemptCount = await this.testAttemptRepository.count({
+      where: {
+        test: { id: finalExam.id },
+        user: { id: userId },
+        status: AttemptStatus.COMPLETED,
+      },
+    });
+
+    // Determine if user can retry (failed attempts or no attempts yet)
+    const canRetry = !lastAttempt || !lastAttempt.isPassed;
+
     return {
       ...finalExam,
       isAllTopicExamsCompleted,
       completedTopicExams,
       totalTopicExams,
       isAvailable: isAllTopicExamsCompleted,
+      currentAttempt: currentAttempt ? {
+        id: currentAttempt.id,
+        status: currentAttempt.status,
+        startedAt: currentAttempt.startedAt,
+        score: currentAttempt.score,
+        isPassed: currentAttempt.isPassed,
+      } : undefined,
+      lastAttempt: lastAttempt ? {
+        id: lastAttempt.id,
+        status: lastAttempt.status,
+        completedAt: lastAttempt.completedAt,
+        score: lastAttempt.score,
+        isPassed: lastAttempt.isPassed,
+      } : undefined,
+      canRetry,
+      attemptCount,
     };
   }
 

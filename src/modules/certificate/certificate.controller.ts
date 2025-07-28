@@ -38,4 +38,12 @@ export class CertificateController {
       hasCertificate: await this.certificateService.hasCertificate(user.id, courseId),
     };
   }
+
+  @Get(':certificateId')
+  async getCertificateById(
+    @Param('certificateId') certificateId: number,
+    @GetUser() user: any,
+  ) {
+    return this.certificateService.getCertificateById(certificateId, user.id);
+  }
 } 

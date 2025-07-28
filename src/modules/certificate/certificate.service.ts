@@ -106,4 +106,17 @@ export class CertificateService {
 
     return !!certificate;
   }
+
+  async getCertificateById(certificateId: number, userId: number): Promise<CourseCertificate> {
+    const certificate = await this.certificateRepository.findOne({
+      where: { id: certificateId, user: { id: userId } },
+      relations: ['course', 'user'],
+    });
+
+    if (!certificate) {
+      throw new NotFoundException('Certificate not found');
+    }
+
+    return certificate;
+  }
 } 

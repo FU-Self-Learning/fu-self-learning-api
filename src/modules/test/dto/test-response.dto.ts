@@ -65,6 +65,23 @@ export class FinalExamResponseDto extends TestResponseDto {
   completedTopicExams: number;
   totalTopicExams: number;
   isAvailable: boolean;
+  // Add attempt information for progress tracking
+  currentAttempt?: {
+    id: number;
+    status: string;
+    startedAt: Date;
+    score?: number;
+    isPassed?: boolean;
+  };
+  lastAttempt?: {
+    id: number;
+    status: string;
+    completedAt: Date;
+    score: number;
+    isPassed: boolean;
+  };
+  canRetry: boolean;
+  attemptCount: number;
 }
 
 export class TestAttemptResponseDto {
