@@ -16,12 +16,14 @@ import { LoginDto } from './dto/login.dto';
 import { Response, Request } from 'express';
 import { TokenService, JwtAuthGuard, JwtPayload } from 'src/config/jwt';
 import { AuthGuard } from '@nestjs/passport';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private tokenService: TokenService,
+    private configService: ConfigService,
   ) {}
 
   @Get('google')
@@ -49,7 +51,9 @@ export class AuthController {
     const accessToken = this.tokenService.generateAccessToken(payload);
     const refreshToken = this.tokenService.generateRefreshToken(payload, '7d');
 
-    const redirectUrl = `http://localhost:3000/login-google?accessToken=${accessToken}&refreshToken=${refreshToken}&userInfo=${encodeURIComponent(JSON.stringify(user))}`;
+    const feAppUrl =
+      this.configService.get<string>('FE_APP_URL') || 'http://localhost:3000';
+    const redirectUrl = `${feAppUrl}/login-google?accessToken=${accessToken}&refreshToken=${refreshToken}&userInfo=${encodeURIComponent(JSON.stringify(user))}`;
 
     return res.redirect(redirectUrl);
   }
